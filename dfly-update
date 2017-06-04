@@ -1,0 +1,226 @@
+#!/bin/sh
+#
+# Copyright (c) Aaron LI <aly@aaronly.me>
+# MIT License
+#
+# DragonFly BSD update tool
+#
+
+set -e
+
+DEBUG=        # Disable debug
+DEBUG=true    # Enable debug
+
+NAME="dfly-update"
+VERSION="0.1.0"
+PROGRAM="${0##*/}"
+TOOLDIR="${0%/*}"
+PREFIX="${PREFIX:-${TOOLDIR}}"
+CONFIGFILE="${PREFIX}/${NAME}.conf"
+
+#
+# Error Codes
+#
+
+EC_OS=5
+EC_CONFIGFILE=10
+EC_CONFIG=11
+
+
+#
+# Default Configurations
+#
+
+# Base URL to Remote DragonFly BSD images
+URL_BASE="https://mirror-master.dragonflybsd.org"
+URL_DEVELOPMENT="${URL_BASE}/snapshots/x86_64/images"
+URL_RELEASE="${URL_BASE}/iso-images"
+
+# Default to track the same branch as the installed system
+UPDATE_BRANCH=
+
+
+#
+# Helper Functions
+#
+
+error() {
+    echo "ERROR: $@" >&2
+}
+
+check_os() {
+    local os
+    os=$(uname -s)
+    if [ "${os}" != "DragonFly" ]; then
+        error "Unsupported operating system: ${os}"
+        exit ${EC_OS}
+    fi
+}
+
+# Load configurations from file
+load_config() {
+    local configfile tmpcfg
+    configfile="$1"
+    if [ ! -r "${configfile}" ]; then
+        error "Cannot read configuration file: ${configfile}"
+        exit ${EC_CONFIGFILE}
+    fi
+    # Filter out only valid configurations to be secure
+    tmpcfg=$(mktemp)
+    egrep '^[^ ]*=[^;&]*' ${configfile} > ${tmpcfg}
+    . ${tmpcfg}
+    rm ${tmpcfg}
+}
+
+# Get the branch of the installed system
+# * DEVELOPMENT
+# * RELEASE
+get_local_branch() {
+    check_os || exit $?
+    uname -r | awk -F'-' '{ print $2 }'
+}
+
+# Get the version of local installed system
+get_local_version() {
+    local version
+    check_os
+    version=$(uname -v | awk '{ print $2 }')
+    echo "${version}" | awk -F'-' '{ print $1 }' | tr -d 'v'
+}
+
+# Get the latest remote system image
+# Returns:
+# "_filename=<latest.iso/img>; md5=<md5/of/latest.iso/img>"
+get_latest_image() {
+    local branch local url_checksum tmpchecksum
+    local latest_filename latest_md5 line
+    branch="$1"
+    if [ "${branch}" = "DEVELOPMENT" ]; then
+        url_checksum="${URL_DEVELOPMENT}/CHECKSUM.MD5"
+    else
+        url_checksum="${URL_RELEASE}/md5.txt"
+    fi
+    tmpchecksum=$(mktemp)
+    echo "Fetch remote systems checksum: ${url_checksum}" >&2
+    fetch -o ${tmpchecksum} "${url_checksum}"
+    if [ "${branch}" = "DEVELOPMENT" ]; then
+        line=$(tail -n 1 ${tmpchecksum})
+    else
+        line=$(grep -v 'gui' ${tmpchecksum} | tail -n 1)
+    fi
+    latest_filename=$(echo "${line}" | awk -F'[()]' '{ print $2 }')
+    latest_md5=$(echo "${line}" | awk '{ print $5 }')
+    rm ${tmpchecksum}
+    echo "_filename='${latest_filename}'; _md5='${latest_md5}'"
+}
+
+# Extract the version from image filename
+get_version_filename() {
+    local branch filename version
+    branch="$1"
+    filename="$2"
+    if [ "${branch}" = "DEVELOPMENT" ]; then
+        version=$(echo "${filename}" | cut -d'-' -f5 | cut -d'.' -f1-5)
+    else
+        version=$(echo "${filename}" | cut -d'-' -f3 | cut -d'_' -f1)
+        version=${version#v}
+    fi
+    echo ${version}
+}
+
+# Compare between two version strings
+# Returns values:
+# * 0 : The two versions are the same
+# * 1 : The first version is older than the other one
+# * 2 : The first version is newer than the other one
+compare_version() {
+    echo 1
+}
+
+
+#
+# Sub-command functions
+#
+
+cmd_version() {
+    cat <<_EOF_
+dfly-update : DragonFly BSD update tool
+Version: ${VERSION}
+Author: Aaron LI <aly@aaronly.me>
+https://github.com/liweitianux/dfly-update
+_EOF_
+}
+
+cmd_usage() {
+    cmd_version
+    echo
+    cat <<_EOF_
+Usage:
+    help
+        Show this help.
+    version
+        Show version information of this tool.
+    status
+        Show local installed system version and remote available version.
+_EOF_
+}
+
+cmd_status() {
+    local branch version branch_remote version_remote has_update
+    branch=$(get_local_branch)
+    version=$(get_local_version)
+    if [ -z "${UPDATE_BRANCH}" ]; then
+         branch_remote=${branch}
+    else
+        branch_remote=${UPDATE_BRANCH}
+    fi
+    eval $(get_latest_image ${branch_remote}) || exit $?
+    version_remote=$(get_version_filename ${branch_remote} ${_filename})
+    cat <<_EOF_
+Local installed system:
+    branch: ${branch}
+    version: ${version}
+
+Remote available system:
+    branch: ${branch_remote}
+    version: ${version_remote}
+
+_EOF_
+
+    has_update=$(compare_version ${version} ${version_remote})
+    if [ ${has_update} -eq 0 ]; then
+        echo "^_^ Your DragonFly is update-to-update ^_^"
+    elif [ ${has_update} -eq 1 ]; then
+        echo "!!! Your DragonFly needs update !!!"
+    else
+        echo "??? Your DragonFly is newer than remote ???"
+    fi
+}
+
+#
+# Main
+#
+
+# Load configurations
+[ -r "${CONFIGFILE}" ] && load_config ${CONFIGFILE}
+
+COMMAND="$1"
+case "${COMMAND}" in
+    help|--help|-h)
+        shift
+        cmd_usage
+        ;;
+    version|--version|-V)
+        shift
+        cmd_version
+        ;;
+    status)
+        shift
+        cmd_status "$@"
+        ;;
+    *)
+        cmd_extension_or_status "$@"
+        ;;
+esac
+
+exit 0
