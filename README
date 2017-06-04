@@ -1,0 +1,13 @@
+===========
+dfly-update
+===========
+
+Copyright (c) 2017 Aaron LI <aly@aaronly.me>
+MIT License
+
+A simple tool to update the DragonFly BSD system from a pre-built system
+image (e.g., ISO/IMG of a snapshot build or a release).
+
+This tool is written by the author to help keep the DragonFly BSD system
+on a low-performance KVM up-to-date, without consuming too much resources
+to build and update from source.
