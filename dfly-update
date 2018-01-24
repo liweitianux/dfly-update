@@ -129,12 +129,23 @@ get_version_filename() {
 }
 
 # Compare between two version strings
+# Parameters: ver1 ver2
 # Returns values:
-# * 0 : The two versions are the same
-# * 1 : The first version is older than the other one
-# * 2 : The first version is newer than the other one
+# * 0 : ver1 = ver2
+# * 1 : ver1 < ver2
+# * 2 : ver1 > ver2
 compare_version() {
-    echo 1
+    lcal ver1 ver2 ver_low
+    ver1="$1"
+    ver2="$2"
+    ver_low=$(echo -e "${ver1}\n${ver2}" | sort -V | head -n 1)
+    if [ "${ver1}" = "${ver2}" ]; then
+        echo 0
+    elif [ "${ver1}" = "${ver_low}" ]; then
+        echo 1
+    else
+        echo 2
+    fi
 }
 
 
