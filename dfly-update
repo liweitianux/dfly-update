@@ -3,7 +3,8 @@
 # Copyright (c) Aaron LI <aly@aaronly.me>
 # MIT License
 #
-# DragonFly BSD update tool
+# Tool to update a DragonFly BSD system using binary
+# releases or snapshot builds.
 #
 
 set -e
@@ -12,7 +13,7 @@ DEBUG=        # Disable debug
 DEBUG=true    # Enable debug
 
 NAME="dfly-update"
-VERSION="0.1.0"
+VERSION="0.?.?"
 PROGRAM="${0##*/}"
 TOOLDIR="${0%/*}"
 PREFIX="${PREFIX:-${TOOLDIR}}"
@@ -52,7 +53,7 @@ check_os() {
     local os
     os=$(uname -s)
     if [ "${os}" != "DragonFly" ]; then
-        error "Unsupported operating system: ${os}"
+        error "Not a DragonFly BSD system!"
         exit ${EC_OS}
     fi
 }
@@ -90,7 +91,7 @@ get_local_version() {
 
 # Get the latest remote system image
 # Returns:
-# "_filename=<latest.iso/img>; md5=<md5/of/latest.iso/img>"
+# "_filename=<latest.iso/img>; _md5=<md5/of/latest.iso/img>"
 get_latest_image() {
     local branch local url_checksum tmpchecksum
     local latest_filename latest_md5 line
@@ -155,17 +156,16 @@ compare_version() {
 
 cmd_version() {
     cat <<_EOF_
-dfly-update : DragonFly BSD update tool
-Version: ${VERSION}
-Author: Aaron LI <aly@aaronly.me>
+v${VERSION}
+Aaron LI <aly@aaronly.me>
 https://github.com/liweitianux/dfly-update
 _EOF_
 }
 
 cmd_usage() {
-    cmd_version
-    echo
     cat <<_EOF_
+dfly-update - DragonFly BSD update tool using binary release/snapshots
+
 Usage:
     help
         Show this help.
@@ -174,6 +174,8 @@ Usage:
     status
         Show local installed system version and remote available version.
 _EOF_
+    echo
+    cmd_version
 }
 
 cmd_status() {
@@ -181,7 +183,7 @@ cmd_status() {
     branch=$(get_local_branch)
     version=$(get_local_version)
     if [ -z "${UPDATE_BRANCH}" ]; then
-         branch_remote=${branch}
+        branch_remote=${branch}
     else
         branch_remote=${UPDATE_BRANCH}
     fi
@@ -200,12 +202,23 @@ _EOF_
 
     has_update=$(compare_version ${version} ${version_remote})
     if [ ${has_update} -eq 0 ]; then
-        echo "^_^ Your DragonFly is update-to-update ^_^"
+        echo "^_^ Your DragonFly is up-to-date ^_^"
     elif [ ${has_update} -eq 1 ]; then
         echo "!!! Your DragonFly needs update !!!"
     else
         echo "??? Your DragonFly is newer than remote ???"
     fi
+}
+
+cmd_extension_or_status() {
+    case "$1" in
+        "")
+            cmd_status
+            ;;
+        *)
+            echo "TODO..."
+            ;;
+    esac
 }
 
 #
