@@ -105,9 +105,10 @@ get_latest_image() {
     echo "Fetch remote systems checksum: ${url_checksum}" >&2
     fetch -o ${tmpchecksum} "${url_checksum}"
     if [ "${branch}" = "DEVELOPMENT" ]; then
-        line=$(tail -n 1 ${tmpchecksum})
+        line=$(fgrep '.img.bz2' ${tmpchecksum} | tail -n 1)
     else
-        line=$(grep -v 'gui' ${tmpchecksum} | tail -n 1)
+        line=$(fgrep '.img.bz2' ${tmpchecksum} | \
+               fgrep -v 'gui-' | tail -n 1)
     fi
     latest_filename=$(echo "${line}" | awk -F'[()]' '{ print $2 }')
     latest_md5=$(echo "${line}" | awk '{ print $5 }')
