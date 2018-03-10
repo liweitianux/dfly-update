@@ -284,7 +284,7 @@ download_image() {
     local url="$1"
     local outfile="$2"
     local outdir=$(dirname "${outfile}")
-    [ ! -d "${outdir}" ] && mkdir -v "${outdir}"
+    [ ! -d "${outdir}" ] && mkdir "${outdir}"
     echo "Downloading the new system image ..."
     echo "  <= ${url}"
     echo "  => ${outfile}"
@@ -303,7 +303,7 @@ mount_image() {
     local imgfile="$1"
     local mntpnt="$2"
     local vn=$(vnconfig -l | fgrep "not in use" | head -n 1 | cut -d':' -f 1)
-    [ ! -d "${mntpnt}" ] && mkdir -v "${mntpnt}"
+    [ ! -d "${mntpnt}" ] && mkdir "${mntpnt}"
     echo "Mounting image ${imgfile} to ${mntpnt} ..."
     vnconfig -v -c ${vn} ${imgfile} || exit ${EC_VN}
     mount -r /dev/${vn}s2a ${mntpnt} \
@@ -367,7 +367,7 @@ backup_kernel() {
         cp -p ${kerndir}/initrd.img ${oldkerndir}
     [ -f "${kerndir}/initrd.img.gz" ] && \
         cp -p ${kerndir}/initrd.img.gz ${oldkerndir}
-    echo "Backed up old kernel at: ${oldkerndir}"
+    echo "DONE"
 }
 
 # Backup the old world
@@ -380,7 +380,7 @@ backup_world() {
     local backfile="$1"
     local backdir=$(dirname "${backfile}")
     echo "Backing up current world to ${backfile} ..."
-    [ ! -d "${backdir}" ] && mkdir -v ${backdir}
+    [ ! -d "${backdir}" ] && mkdir ${backdir}
     if [ -f "${backfile}" ]; then
         warn "  => Previously backed up world exists!"
         rm -f "${backfile}"
@@ -392,7 +392,7 @@ backup_world() {
         etc \
         bin sbin lib libexec \
         usr/bin usr/sbin usr/lib usr/libexec \
-        && echo "  => DONE" \
+        && echo "DONE" \
         || exit ${EC_TAR}
 }
 
@@ -462,7 +462,7 @@ upgrade_system() {
         error ${EC_ARGS} "upgrade_system: invalid arguments: $@"
     local etcdir="${CACHE_DIR}/etc.new"
     local file file_new
-    [ ! -d "${CACHE_DIR}" ] && mkdir -v "${CACHE_DIR}"
+    [ ! -d "${CACHE_DIR}" ] && mkdir "${CACHE_DIR}"
     echo "Upgrading system ..."
     echo "  => Coping new /etc to: ${etcdir}"
     cpdup -o -u ${MNT_DIR}/etc.hdd ${etcdir} || exit ${EC_CPDUP}
