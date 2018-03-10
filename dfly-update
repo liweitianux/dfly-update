@@ -492,7 +492,7 @@ upgrade_system() {
         fi
     done
     echo "  => Renaming changed files while deleting others ..."
-    find /etc/ -type f | while read -r file; do
+    find -s /etc/ -not -name "*.${NEW_SUF}" -type f | while read -r file; do
         file_new="${etcdir}/${file#/etc/}"
         if [ -f "${file_new}" ]; then
             echo -n "   * ${file_new}  "
@@ -501,7 +501,7 @@ upgrade_system() {
                 echo "(same)"
             else
                 mv "${file_new}" "${file_new}.${NEW_SUF}"
-                echo "[NEW]"
+                echo "[NEW-VERSION]"
             fi
         fi
     done
