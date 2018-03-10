@@ -278,6 +278,7 @@ mount_image() {
 #
 
 cmd_version() {
+    [ $# -eq 0 ] || exit ${EC_ARGS}
     cat <<_EOF_
 v${VERSION}
 Aaron LI <aly@aaronly.me>
@@ -286,6 +287,7 @@ _EOF_
 }
 
 cmd_usage() {
+    [ $# -eq 0 ] || exit ${EC_ARGS}
     cat <<_EOF_
 dfly-update - DragonFly BSD update tool using binary release/snapshots
 
@@ -306,9 +308,10 @@ _EOF_
 }
 
 cmd_status() {
-    local branch version branch_remote version_remote has_update
-    branch=$(get_local_branch)
-    version=$(get_local_version)
+    [ $# -eq 0 ] || exit ${EC_ARGS}
+    local branch=$(get_local_branch)
+    local version=$(get_local_version)
+    local branch_remote version_remote has_update
     if [ -z "${UPDATE_BRANCH}" ]; then
         branch_remote=${branch}
     else
@@ -344,6 +347,7 @@ _EOF_
 # usage:
 #   cmd_download <filename> <md5>
 cmd_download() {
+    [ $# -eq 2 ] || exit ${EC_ARGS}
     local filename="$1"
     local md5="$2"
     local url=$(get_image_url ${filename})
