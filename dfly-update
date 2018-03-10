@@ -670,7 +670,7 @@ cmd_mount() {
             echo -n "Decompressing file: ${file} ... "
             bunzip2 "${file}"
             echo "DONE"
-            filepath="${file%.bz2}"
+            file="${file%.bz2}"
             ;;
     esac
     mount_image "${file}" "${MNT_DIR}"
