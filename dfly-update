@@ -9,6 +9,8 @@
 
 set -e
 
+DEBUG=${DEBUG:-""}
+
 NAME="dfly-update"
 VERSION="0.?.?"
 TOOLDIR="${0%/*}"
@@ -40,6 +42,14 @@ UPDATE_BRANCH=
 #
 # Helper Functions
 #
+
+debug() {
+    [ -n "${DEBUG}" ] && echo "DEBUG: $@" >&2
+}
+
+warn() {
+    echo "WARNING: $@" >&2
+}
 
 error() {
     echo "ERROR: $@" >&2
