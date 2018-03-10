@@ -1,20 +1,16 @@
 #!/bin/sh
 #
-# Copyright (c) Aaron LI <aly@aaronly.me>
+# Copyright (c) 2017-2018 Aaron LI <aly@aaronly.me>
 # MIT License
 #
-# Tool to update a DragonFly BSD system using binary
-# releases or snapshot builds.
+# Tool to update a DragonFly BSD system using binary releases or
+# snapshot builds.
 #
 
 set -e
 
-DEBUG=        # Disable debug
-DEBUG=true    # Enable debug
-
 NAME="dfly-update"
 VERSION="0.?.?"
-PROGRAM="${0##*/}"
 TOOLDIR="${0%/*}"
 PREFIX="${PREFIX:-${TOOLDIR}}"
 CONFIGFILE="${PREFIX}/${NAME}.conf"
