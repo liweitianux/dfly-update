@@ -57,14 +57,16 @@ warn() {
 }
 
 error() {
+    local ec="$1"
+    shift
     echo "ERROR: $@" >&2
+    exit ${ec}
 }
 
 check_os() {
     local os=$(uname -s)
     if [ "${os}" != "DragonFly" ]; then
-        error "Not a DragonFly BSD system!"
-        exit ${EC_OS}
+        error ${EC_OS} "Not a DragonFly BSD system!"
     fi
 }
 
