@@ -25,6 +25,7 @@ EC_OS=10
 EC_TMPFILE=11
 EC_MD5=12
 EC_ARGS=13
+EC_FETCH=14
 
 
 #
@@ -162,7 +163,7 @@ get_latest_image() {
     local tmpchecksum=$(mktemp -t ${NAME}) || exit ${EC_TMPFILE}
     local latest_filename latest_md5 line
     echo "Fetch remote systems checksum: ${url_checksum}" >&2
-    fetch -q -o ${tmpchecksum} "${url_checksum}"
+    fetch -q -o ${tmpchecksum} "${url_checksum}" || exit ${EC_FETCH}
     if is_master_branch "${branch}"; then
         line=$(fgrep '.img.bz2' ${tmpchecksum} | tail -n 1)
     else
@@ -246,7 +247,9 @@ download_image() {
     echo "  => ${outfile}"
     fetch -o "${outfile}" "${url}" \
         && echo "DONE" \
-        || exit $?
+        || exit ${EC_FETCH}
+}
+
 }
 
 
