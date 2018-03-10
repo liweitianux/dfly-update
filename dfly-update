@@ -75,7 +75,8 @@ error() {
 }
 
 check_os() {
-    [ $# -eq 0 ] || exit ${EC_ARGS}
+    [ $# -eq 0 ] || \
+        error ${EC_ARGS} "check_os: invalid arguments: $@"
     local os=$(uname -s)
     if [ "${os}" != "DragonFly" ]; then
         error ${EC_OS} "Not a DragonFly BSD system!"
@@ -89,7 +90,8 @@ check_os() {
 #
 # Credit: https://stackoverflow.com/a/8811800
 contains() {
-    [ $# -eq 2 ] || exit ${EC_ARGS}
+    [ $# -eq 2 ] || \
+        error ${EC_ARGS} "contains: invalid arguments: $@"
     local string="$1"
     local substring="$2"
     if [ "${string#*$substring}" != "$string" ]; then
@@ -101,7 +103,8 @@ contains() {
 
 # Determine the branch from the image filename
 get_branch_filename() {
-    [ $# -eq 1 ] || exit ${EC_ARGS}
+    [ $# -eq 1 ] || \
+        error ${EC_ARGS} "get_branch_filename: invalid arguments: $@"
     if contains "$1" "-DEV-"; then
         echo "MASTER"
     else
@@ -111,7 +114,8 @@ get_branch_filename() {
 
 # Determine whether the given name refers to the master branch?
 is_master_branch() {
-    [ $# -eq 1 ] || exit ${EC_ARGS}
+    [ $# -eq 1 ] || \
+        error ${EC_ARGS} "is_master_branch: invalid arguments: $@"
     case "$1" in
         master|MASTER|[dD][eE][vV]*)
             return 0
@@ -126,14 +130,16 @@ is_master_branch() {
 # * DEVELOPMENT
 # * RELEASE
 get_local_branch() {
-    [ $# -eq 0 ] || exit ${EC_ARGS}
+    [ $# -eq 0 ] || \
+        error ${EC_ARGS} "get_local_branch: invalid arguments: $@"
     check_os
     uname -r | awk -F'-' '{ print $2 }'
 }
 
 # Get the version of local installed system
 get_local_version() {
-    [ $# -eq 0 ] || exit ${EC_ARGS}
+    [ $# -eq 0 ] || \
+        error ${EC_ARGS} "get_local_version: invalid arguments: $@"
     check_os
     local version=$(uname -v | awk '{ print $2 }')
     echo "${version}" | awk -F'-' '{ print $1 }' | tr -d 'v'
@@ -141,7 +147,8 @@ get_local_version() {
 
 # Get the URL of the MD5 list
 get_md5list_url() {
-    [ $# -eq 1 ] || exit ${EC_ARGS}
+    [ $# -eq 1 ] || \
+        error ${EC_ARGS} "get_md5list_url: invalid arguments: $@"
     local branch="$1"
     if is_master_branch "${branch}"; then
         echo "${URL_MASTER}/CHECKSUM.MD5"
@@ -152,7 +159,8 @@ get_md5list_url() {
 
 # Determine the URL of the given image filename
 get_image_url() {
-    [ $# -eq 1 ] || exit ${EC_ARGS}
+    [ $# -eq 1 ] || \
+        error ${EC_ARGS} "get_image_url: invalid arguments: $@"
     local filename="$1"
     local branch=$(get_branch_filename ${filename})
     if is_master_branch "${branch}"; then
@@ -166,7 +174,8 @@ get_image_url() {
 # Returns:
 # "_filename='<latest.iso/img>'; _md5='<md5/of/latest.iso/img>'"
 get_latest_image() {
-    [ $# -eq 1 ] || exit ${EC_ARGS}
+    [ $# -eq 1 ] || \
+        error ${EC_ARGS} "get_latest_image: invalid arguments: $@"
     local branch="$1"
     local url_checksum=$(get_md5list_url ${branch})
     local tmpchecksum=$(mktemp -t ${NAME}) || exit ${EC_TMPFILE}
@@ -188,7 +197,8 @@ get_latest_image() {
 
 # Extract the version from image filename
 get_version_filename() {
-    [ $# -eq 2 ] || exit ${EC_ARGS}
+    [ $# -eq 2 ] || \
+        error ${EC_ARGS} "get_version_filename: $@"
     local branch="$1"
     local filename="$2"
     local version
@@ -208,7 +218,8 @@ get_version_filename() {
 # * 1 : ver1 < ver2
 # * 2 : ver1 > ver2
 compare_version() {
-    [ $# -eq 2 ] || exit ${EC_ARGS}
+    [ $# -eq 2 ] || \
+        error ${EC_ARGS} "compare_version: invalid arguments: $@"
     local ver1="$1"
     local ver2="$2"
     local ver_low=$(echo -e "${ver1}\n${ver2}" | sort -V | head -n 1)
@@ -229,7 +240,8 @@ compare_version() {
 # * 0 : file exists and its md5 hash matches the given one.
 # * 1 : otherwise
 checksum_image() {
-    [ $# -eq 2 ] || exit ${EC_ARGS}
+    [ $# -eq 2 ] || \
+        error ${EC_ARGS} "checksum_image: invalid arguments: $@"
     local file="$1"
     local md5_match="$2"
     local md5
@@ -246,7 +258,8 @@ checksum_image() {
 # download_image(url, outfile)
 #
 download_image() {
-    [ $# -eq 2 ] || exit ${EC_ARGS}
+    [ $# -eq 2 ] || \
+        error ${EC_ARGS} "download_image: invalid arguments: $@"
     local url="$1"
     local outfile="$2"
     local outdir=$(dirname "${outfile}")
@@ -264,7 +277,8 @@ download_image() {
 # mount_image(imgfile, mntpnt)
 #
 mount_image() {
-    [ $# -eq 2 ] || exit ${EC_ARGS}
+    [ $# -eq 2 ] || \
+        error ${EC_ARGS} "mount_image: invalid arguments: $@"
     local imgfile="$1"
     local mntpnt="$2"
     local vn=$(vnconfig -l | fgrep "not in use" | head -n 1 | cut -d':' -f 1)
@@ -278,7 +292,8 @@ mount_image() {
 
 # Get the vn device name of the mounted image
 get_vn_devname() {
-    [ $# -eq 1 ] || exit ${EC_ARGS}
+    [ $# -eq 1 ] || \
+        error ${EC_ARGS} "get_vn_devname: invalid arguments: $@"
     local mntpnt="$1"
     local dev=$(mount | fgrep "${mntpnt}" | cut -d' ' -f 1 | cut -d'/' -f 3)
     echo ${dev%s??}
@@ -286,7 +301,8 @@ get_vn_devname() {
 
 # Get the filename configured for the vn device
 get_vn_filename() {
-    [ $# -eq 1 ] || exit ${EC_ARGS}
+    [ $# -eq 1 ] || \
+        error ${EC_ARGS} "get_vn_filename: invalid arguments: $@"
     local vn="$1"
     echo $(vnconfig -l ${vn} | awk '{ print $3 }')
 }
@@ -296,7 +312,8 @@ get_vn_filename() {
 # umount_image(mntpnt)
 #
 umount_image() {
-    [ $# -eq 1 ] || exit ${EC_ARGS}
+    [ $# -eq 1 ] || \
+        error ${EC_ARGS} "umount_image: invalid arguments: $@"
     local mntpnt="$1"
     local vn=$(get_vn_devname ${mntpnt})
     echo -n "Umounting image from ${mntpnt} ... "
@@ -309,7 +326,8 @@ umount_image() {
 
 # Backup the old kernel
 backup_kernel() {
-    [ $# -eq 0 ] || exit ${EC_ARGS}
+    [ $# -eq 0 ] || \
+        error ${EC_ARGS} "backup_kernel: invalid arguments: $@"
     local kerndir="/boot/kernel"
     local oldkerndir="${kerndir}.old"
     echo "Backing up current kernel to ${oldkerndir} ..."
@@ -336,7 +354,8 @@ backup_kernel() {
 # backup_world(backfile)
 #
 backup_world() {
-    [ $# -eq 1 ] || exit ${EC_ARGS}
+    [ $# -eq 1 ] || \
+        error ${EC_ARGS} "backup_world: invalid arguments: $@"
     local backfile="$1"
     local backdir=$(dirname "${backfile}")
     echo "Backing up current world to ${backfile} ..."
@@ -364,7 +383,6 @@ backup_world() {
 #
 
 cmd_version() {
-    [ $# -eq 0 ] || exit ${EC_ARGS}
     cat <<_EOF_
 v${VERSION}
 Aaron LI <aly@aaronly.me>
@@ -373,7 +391,6 @@ _EOF_
 }
 
 cmd_usage() {
-    [ $# -eq 0 ] || exit ${EC_ARGS}
     cat <<_EOF_
 dfly-update - DragonFly BSD update tool using binary release/snapshots
 
@@ -396,7 +413,8 @@ _EOF_
 }
 
 cmd_status() {
-    [ $# -eq 0 ] || exit ${EC_ARGS}
+    [ $# -eq 0 ] || \
+        error ${EC_ARGS} "cmd_status: invalid arguments: $@"
     local branch=$(get_local_branch)
     local version=$(get_local_version)
     local branch_remote version_remote has_update
@@ -435,7 +453,8 @@ _EOF_
 # usage:
 #   cmd_download <filename> <md5>
 cmd_download() {
-    [ $# -eq 2 ] || exit ${EC_ARGS}
+    [ $# -eq 2 ] || \
+        error ${EC_ARGS} "cmd_download: invalid arguments: $@"
     local filename="$1"
     local md5="$2"
     local url=$(get_image_url ${filename})
@@ -452,7 +471,8 @@ cmd_download() {
 # usage:
 #   cmd_mount <filepath>
 cmd_mount() {
-    [ $# -eq 1 ] || exit ${EC_ARGS}
+    [ $# -eq 1 ] || \
+        error ${EC_ARGS} "cmd_mount: invalid arguments: $@"
     local filepath="$1"
     case "${filepath}" in
         *.bz2)
@@ -467,7 +487,8 @@ cmd_mount() {
 
 # Back up the current kernel and world
 cmd_backup() {
-    [ $# -eq 0 ] || exit ${EC_ARGS}
+    [ $# -eq 0 ] || \
+        error ${EC_ARGS} "cmd_backup: invalid arguments: $@"
     backup_kernel
     backfile="${BACK_DIR}/world.tar.gz"
     backup_world "${backfile}"
