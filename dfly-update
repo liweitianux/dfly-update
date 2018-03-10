@@ -11,8 +11,8 @@ set -e
 
 DEBUG=${DEBUG:-""}
 
+VERSION="0.1.0"
 NAME="dfly-update"
-VERSION="0.?.?"
 TOOLDIR="${0%/*}"
 PREFIX="${PREFIX:-${TOOLDIR}}"
 CONFIGFILE="${PREFIX}/${NAME}.conf"
