@@ -678,7 +678,8 @@ cmd_cleanup() {
     [ $# -eq 0 ] || \
         error ${EC_ARGS} "cmd_cleanup: invalid arguments: $@"
     cleanup
-    local filepath=$(get_vn_filename ${MNT_DIR})
+    local vn=$(get_vn_devname ${MNT_DIR})
+    local filepath=$(get_vn_filename ${vn})
     umount_image ${MNT_DIR}
     rm -f ${filepath}
     echo "Removed image file: ${filepath}"
