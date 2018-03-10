@@ -24,6 +24,7 @@ CONFIGFILE="${PREFIX}/${NAME}.conf"
 EC_OS=10
 EC_TMPFILE=11
 EC_MD5=12
+EC_ARGS=13
 
 
 #
@@ -64,6 +65,7 @@ error() {
 }
 
 check_os() {
+    [ $# -eq 0 ] || exit ${EC_ARGS}
     local os=$(uname -s)
     if [ "${os}" != "DragonFly" ]; then
         error ${EC_OS} "Not a DragonFly BSD system!"
@@ -77,6 +79,7 @@ check_os() {
 #
 # Credit: https://stackoverflow.com/a/8811800
 contains() {
+    [ $# -eq 2 ] || exit ${EC_ARGS}
     local string="$1"
     local substring="$2"
     if [ "${string#*$substring}" != "$string" ]; then
@@ -88,6 +91,7 @@ contains() {
 
 # Determine the branch from the image filename
 get_branch_filename() {
+    [ $# -eq 1 ] || exit ${EC_ARGS}
     if contains "$1" "-DEV-"; then
         echo "MASTER"
     else
@@ -97,6 +101,7 @@ get_branch_filename() {
 
 # Determine whether the given name refers to the master branch?
 is_master_branch() {
+    [ $# -eq 1 ] || exit ${EC_ARGS}
     case "$1" in
         master|MASTER|[dD][eE][vV]*)
             return 0
@@ -111,12 +116,14 @@ is_master_branch() {
 # * DEVELOPMENT
 # * RELEASE
 get_local_branch() {
-    check_os || exit $?
+    [ $# -eq 0 ] || exit ${EC_ARGS}
+    check_os
     uname -r | awk -F'-' '{ print $2 }'
 }
 
 # Get the version of local installed system
 get_local_version() {
+    [ $# -eq 0 ] || exit ${EC_ARGS}
     check_os
     local version=$(uname -v | awk '{ print $2 }')
     echo "${version}" | awk -F'-' '{ print $1 }' | tr -d 'v'
@@ -124,6 +131,7 @@ get_local_version() {
 
 # Get the URL of the MD5 list
 get_md5list_url() {
+    [ $# -eq 1 ] || exit ${EC_ARGS}
     local branch="$1"
     if is_master_branch "${branch}"; then
         echo "${URL_MASTER}/CHECKSUM.MD5"
@@ -134,6 +142,7 @@ get_md5list_url() {
 
 # Determine the URL of the given image filename
 get_image_url() {
+    [ $# -eq 1 ] || exit ${EC_ARGS}
     local filename="$1"
     local branch=$(get_branch_filename ${filename})
     if is_master_branch "${branch}"; then
@@ -147,11 +156,11 @@ get_image_url() {
 # Returns:
 # "_filename='<latest.iso/img>'; _md5='<md5/of/latest.iso/img>'"
 get_latest_image() {
-    local latest_filename latest_md5 line
+    [ $# -eq 1 ] || exit ${EC_ARGS}
     local branch="$1"
     local url_checksum=$(get_md5list_url ${branch})
-    local tmpchecksum=$(mktemp -t ${NAME}) || \
-        exit ${EC_TMPFILE}
+    local tmpchecksum=$(mktemp -t ${NAME}) || exit ${EC_TMPFILE}
+    local latest_filename latest_md5 line
     echo "Fetch remote systems checksum: ${url_checksum}" >&2
     fetch -q -o ${tmpchecksum} "${url_checksum}"
     if is_master_branch "${branch}"; then
@@ -169,6 +178,7 @@ get_latest_image() {
 
 # Extract the version from image filename
 get_version_filename() {
+    [ $# -eq 2 ] || exit ${EC_ARGS}
     local branch="$1"
     local filename="$2"
     local version
@@ -188,6 +198,7 @@ get_version_filename() {
 # * 1 : ver1 < ver2
 # * 2 : ver1 > ver2
 compare_version() {
+    [ $# -eq 2 ] || exit ${EC_ARGS}
     local ver1="$1"
     local ver2="$2"
     local ver_low=$(echo -e "${ver1}\n${ver2}" | sort -V | head -n 1)
@@ -208,6 +219,7 @@ compare_version() {
 # * 0 : file exists and its md5 hash matches the given one.
 # * 1 : otherwise
 checksum_image() {
+    [ $# -eq 2 ] || exit ${EC_ARGS}
     local file="$1"
     local md5_match="$2"
     local md5
@@ -224,6 +236,7 @@ checksum_image() {
 # download_image(url, outfile)
 #
 download_image() {
+    [ $# -eq 2 ] || exit ${EC_ARGS}
     local url="$1"
     local outfile="$2"
     local outdir=$(dirname "${outfile}")
