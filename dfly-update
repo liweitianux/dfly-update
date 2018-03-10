@@ -532,6 +532,8 @@ Usage:
         Mount the given image file
     backup
         Back up the current kernel and world
+    upgrade
+        Install the new kernel, world, and config files
 _EOF_
     echo
     cmd_version
@@ -601,7 +603,7 @@ cmd_mount() {
     local filepath="$1"
     case "${filepath}" in
         *.bz2)
-            echo -n "Decompressing file: ${filepath} ..."
+            echo -n "Decompressing file: ${filepath} ... "
             bunzip2 "${filepath}"
             echo "DONE"
             filepath="${filepath%.bz2}"
@@ -617,6 +619,14 @@ cmd_backup() {
     backup_kernel
     backfile="${BACK_DIR}/world.tar.gz"
     backup_world "${backfile}"
+}
+
+# Install the new kernel, world, and config files.
+cmd_upgrade() {
+    [ $# -eq 0 ] || \
+        error ${EC_ARGS} "cmd_upgrade: invalid arguments: $@"
+    install_system
+    upgrade_system
 }
 
 
@@ -648,6 +658,10 @@ case "${COMMAND}" in
     backup)
         shift
         cmd_backup
+        ;;
+    upgrade)
+        shift
+        cmd_upgrade
         ;;
     help|--help|-h|*)
         cmd_usage
