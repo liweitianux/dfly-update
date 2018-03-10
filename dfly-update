@@ -150,7 +150,7 @@ get_latest_image() {
         exit ${EC_TMPFILE}
     echo "Fetch remote systems checksum: ${url_checksum}" >&2
     fetch -o ${tmpchecksum} "${url_checksum}"
-    if [ "${branch}" = "DEVELOPMENT" ]; then
+    if is_master_branch "${branch}"; then
         line=$(fgrep '.img.bz2' ${tmpchecksum} | tail -n 1)
     else
         line=$(fgrep '.img.bz2' ${tmpchecksum} | \
@@ -165,10 +165,10 @@ get_latest_image() {
 
 # Extract the version from image filename
 get_version_filename() {
-    if [ "${branch}" = "DEVELOPMENT" ]; then
     local branch="$1"
     local filename="$2"
     local version
+    if is_master_branch "${branch}"; then
         version=$(echo "${filename}" | cut -d'-' -f5 | cut -d'.' -f1-5)
     else
         version=$(echo "${filename}" | cut -d'-' -f3 | cut -d'_' -f1)
@@ -244,6 +244,8 @@ Local installed system:
 Remote available system:
     branch: ${branch_remote}
     version: ${version_remote}
+    filename: ${_filename}
+    md5: ${_md5}
 
 _EOF_
 
@@ -257,16 +259,6 @@ _EOF_
     fi
 }
 
-cmd_extension_or_status() {
-    case "$1" in
-        "")
-            cmd_status
-            ;;
-        *)
-            echo "TODO..."
-            ;;
-    esac
-}
 
 #
 # Main
