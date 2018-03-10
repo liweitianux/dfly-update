@@ -364,9 +364,9 @@ backup_kernel() {
     local oldkerndir="${kerndir}.old"
     echo "Backing up current kernel to ${oldkerndir} ..."
     if [ -d "${oldkerndir}" ]; then
-        warn "Previous backed up kernel already exists!"
+        warn "Previously backed kernel already exists!"
         rm -r ${oldkerndir}
-        warn "Removed previously backed up kernel: ${oldkerndir}"
+        warn "Removed previously backed kernel: ${oldkerndir}"
     fi
     mkdir -p ${oldkerndir}
     chflags noschg ${kerndir}/kernel
@@ -393,9 +393,9 @@ backup_world() {
     echo "Backing up current world to ${backfile} ..."
     [ ! -d "${backdir}" ] && mkdir ${backdir}
     if [ -f "${backfile}" ]; then
-        warn "  => Previously backed up world exists!"
+        warn "Previously backed world exists!"
         rm -f "${backfile}"
-        warn "  => Removed previously backed world: ${backfile}"
+        warn "Removed previously backed world: ${backfile}"
     fi
     tar -czf "${backfile}" \
         --options gzip:compression-level=1 \
