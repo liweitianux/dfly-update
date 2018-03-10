@@ -402,27 +402,27 @@ install_system() {
         error ${EC_ARGS} "install_system: invalid arguments: $@"
     local file file2 item
     echo "Installing the new kernel and world ..."
-    echo "  => Stashing the files to protect from overriding ..."
+    echo "  => Backing up the files to protect from overriding ..."
     for file in ${FILES_IGNORE}; do
         if [ -f "${file}" ]; then
             file2="${file}.${BAK_SUF}"
-            echo -n "  * ${file}  "
+            echo -n "   * ${file}  "
             cp -af "${file}" "${file2}"  # NOTE: do NOT use "mv"
-            echo "(stashed)"
+            echo "<backed>"
         fi
     done
 
     echo "  => Creating distribution directories ..."
-    mtree -deU -f ${MNT_DIR}/etc.hdd/mtree/BSD.root.dist \
-          -p / || exit ${EC_MTREE}
-    mtree -deU -f ${MNT_DIR}/etc.hdd/mtree/BSD.var.dist \
-          -p /var || exit ${EC_MTREE}
-    mtree -deU -f ${MNT_DIR}/etc.hdd/mtree/BSD.usr.dist \
-          -p /usr || exit ${EC_MTREE}
-    mtree -deU -f ${MNT_DIR}/etc.hdd/mtree/BSD.include.dist \
+    mtree -deUq -f ${MNT_DIR}/etc.hdd/mtree/BSD.root.dist \
+          -p /            || exit ${EC_MTREE}
+    mtree -deUq -f ${MNT_DIR}/etc.hdd/mtree/BSD.var.dist \
+          -p /var         || exit ${EC_MTREE}
+    mtree -deUq -f ${MNT_DIR}/etc.hdd/mtree/BSD.usr.dist \
+          -p /usr         || exit ${EC_MTREE}
+    mtree -deUq -f ${MNT_DIR}/etc.hdd/mtree/BSD.include.dist \
           -p /usr/include || exit ${EC_MTREE}
-    mtree -deU -f ${MNT_DIR}/etc.hdd/mtree/BSD.local.dist \
-          -p /usr/local || exit ${EC_MTREE}
+    mtree -deUq -f ${MNT_DIR}/etc.hdd/mtree/BSD.local.dist \
+          -p /usr/local   || exit ${EC_MTREE}
 
     echo "  => Installing kernel and world ..."
     for item in COPYRIGHT \
@@ -443,21 +443,21 @@ install_system() {
             usr/share \
             var/msgs \
             var/yp; do
-        echo -n "  * Installing: ${item} ... "
+        echo -n "   * Installing: ${item} ... "
         cpdup -o -u ${MNT_DIR}/${item} /${item} || exit ${EC_CPDUP}
-        echo "done!"
+        echo "ok"
     done
 
-    echo "  => Recovering the stashed files ..."
+    echo "  => Recovering the backed files ..."
     for file in ${FILES_IGNORE}; do
         file2="${file}.${BAK_SUF}"
         if [ -f "${file2}" ]; then
-            echo -n "  * ${file}  "
+            echo -n "   * ${file}  "
             mv -f "${file2}" "${file}"
-            echo "(recovered)"
+            echo "<recovered>"
         fi
     done
-    echo "  => DONE"
+    echo "  => DONE!"
 }
 
 # Upgrade the system with configurations
@@ -475,16 +475,16 @@ upgrade_system() {
     for file in ${FILES_IGNORE}; do
         file_new="${etcdir}/${file#/etc/}"
         if [ -f "${file_new}" ]; then
-            echo -n "  * ${file_new}  "
+            echo -n "   * ${file_new}  "
             rm -f "${file_new}"
-            echo "(ignored)"
+            echo "<ignored>"
         fi
     done
     echo "  => Renaming changed files while deleting others ..."
     find /etc/ -type f | while read -r file; do
         file_new="${etcdir}/${file#/etc/}"
         if [ -f "${file_new}" ]; then
-            echo -n "  * ${file_new}  "
+            echo -n "   * ${file_new}  "
             if cmp -s "${file}" "${file_new}"; then
                 rm -f "${file_new}"
                 echo "(same)"
@@ -496,8 +496,8 @@ upgrade_system() {
     done
 
     echo "  => Coping new configurations over ..."
-    cpdup -o -u -I ${etcdir} /etc || exit ${EC_CPDUP}
-    echo "  => DONE"
+    cpdup -o -u ${etcdir} /etc || exit ${EC_CPDUP}
+    echo "  => DONE!"
     rm -rf "${etcdir}"
     echo "+---------+"
     echo "| WARNING | Files with '${NEW_SUF}' suffix need manual merge!"
