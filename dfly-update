@@ -53,19 +53,6 @@ check_os() {
     fi
 }
 
-# Load configurations from file
-load_config() {
-    local configfile="$1"
-    local tmpcfg=$(mktemp -t ${NAME}) || exit ${EC_TMPFILE}
-    if [ ! -r "${configfile}" ]; then
-        error "Cannot read configuration file: ${configfile}"
-        exit ${EC_CONFIGFILE}
-    fi
-    # Filter out only valid configurations to be secure
-    egrep '^[^ ]*=[^;&]*' ${configfile} > ${tmpcfg}
-    . ${tmpcfg}
-    rm -f ${tmpcfg}
-}
 
 # Get the branch of the installed system
 # * DEVELOPMENT
@@ -220,7 +207,7 @@ cmd_extension_or_status() {
 #
 
 # Load configurations
-[ -r "${CONFIGFILE}" ] && load_config ${CONFIGFILE}
+[ -r "${CONFIGFILE}" ] && . ${CONFIGFILE}
 
 COMMAND="$1"
 case "${COMMAND}" in
