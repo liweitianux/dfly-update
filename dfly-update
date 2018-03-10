@@ -148,9 +148,9 @@ cmd_usage() {
 dfly-update - DragonFly BSD update tool using binary release/snapshots
 
 Usage:
-    help
+    help | --help | -h
         Show this help.
-    version
+    version | --version | -v
         Show version information of this tool.
     status
         Show local installed system version and remote available version.
@@ -211,11 +211,7 @@ cmd_extension_or_status() {
 
 COMMAND="$1"
 case "${COMMAND}" in
-    help|--help|-h)
-        shift
-        cmd_usage
-        ;;
-    version|--version|-V)
+    version|--version|-v)
         shift
         cmd_version
         ;;
@@ -223,8 +219,8 @@ case "${COMMAND}" in
         shift
         cmd_status "$@"
         ;;
-    *)
-        cmd_extension_or_status "$@"
+    help|--help|-h|*)
+        cmd_usage
         ;;
 esac
 
