@@ -456,6 +456,50 @@ install_system() {
     echo "  => DONE"
 }
 
+# Upgrade the system with configurations
+upgrade_system() {
+    [ $# -eq 0 ] || \
+        error ${EC_ARGS} "upgrade_system: invalid arguments: $@"
+    local etcdir="${CACHE_DIR}/etc.new"
+    local file file_new
+    [ ! -d "${CACHE_DIR}" ] && mkdir -v "${CACHE_DIR}"
+    echo "Upgrading system ..."
+    echo "  => Coping new /etc to: ${etcdir}"
+    cpdup -o -u ${MNT_DIR}/etc.hdd ${etcdir} || exit ${EC_CPDUP}
+
+    echo "  => Removing ignored files ..."
+    for file in ${FILES_IGNORE}; do
+        file_new="${etcdir}/${file#/etc/}"
+        if [ -f "${file_new}" ]; then
+            echo -n "  * ${file_new}  "
+            rm -f "${file_new}"
+            echo "(ignored)"
+        fi
+    done
+    echo "  => Renaming changed files while deleting others ..."
+    find /etc/ -type f | while read -r file; do
+        file_new="${etcdir}/${file#/etc/}"
+        if [ -f "${file_new}" ]; then
+            echo -n "  * ${file_new}  "
+            if cmp -s "${file}" "${file_new}"; then
+                rm -f "${file_new}"
+                echo "(same)"
+            else
+                mv "${file_new}" "${file_new}.${NEW_SUF}"
+                echo "[NEW]"
+            fi
+        fi
+    done
+
+    echo "  => Coping new configurations over ..."
+    cpdup -o -u -I ${etcdir} /etc || exit ${EC_CPDUP}
+    echo "  => DONE"
+    rm -rf "${etcdir}"
+    echo "+---------+"
+    echo "| WARNING | Files with '${NEW_SUF}' suffix need manual merge!"
+    echo "+---------+"
+}
+
 }
 
 
