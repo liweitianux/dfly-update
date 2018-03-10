@@ -41,6 +41,8 @@ URL_RELEASE="${URL_BASE}/iso-images"
 # * (empty) - same as the local installed branch
 UPDATE_BRANCH=
 
+# Temporary directory to cache the image, etc, ...
+CACHE_DIR="/var/tmp/${NAME}"
 
 #
 # Helper Functions
@@ -149,7 +151,7 @@ get_latest_image() {
     local tmpchecksum=$(mktemp -t ${NAME}) || \
         exit ${EC_TMPFILE}
     echo "Fetch remote systems checksum: ${url_checksum}" >&2
-    fetch -o ${tmpchecksum} "${url_checksum}"
+    fetch -q -o ${tmpchecksum} "${url_checksum}"
     if is_master_branch "${branch}"; then
         line=$(fgrep '.img.bz2' ${tmpchecksum} | tail -n 1)
     else
@@ -196,6 +198,42 @@ compare_version() {
     fi
 }
 
+# Checksum the image file
+#
+# checksum_image(file, md5)
+#
+# Returns:
+# * 0 : file exists and its md5 hash matches the given one.
+# * 1 : otherwise
+checksum_image() {
+    local file="$1"
+    local md5_match="$2"
+    local md5
+    [ -f "${file}" ] && md5=$(md5 -q "${file}")
+    if [ -n "${md5}" ] && [ "${md5}" = "${md5_match}" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Download the latest system image (IMG file)
+#
+# download_image(url, outfile)
+#
+download_image() {
+    local url="$1"
+    local outfile="$2"
+    local outdir=$(dirname "${outfile}")
+    [ ! -d "${outdir}" ] && mkdir -v "${outdir}"
+    echo "Downloading the new system image ..."
+    echo "  <= ${url}"
+    echo "  => ${outfile}"
+    fetch -o "${outfile}" "${url}" \
+        && echo "DONE" \
+        || exit $?
+}
+
 
 #
 # Sub-command functions
@@ -220,6 +258,8 @@ Usage:
         Show version information of this tool.
     status
         Show local installed system version and remote available version.
+    download <filename> <md5>
+        Download the given image and check aginst the given MD5
 _EOF_
     echo
     cmd_version
@@ -259,6 +299,24 @@ _EOF_
     fi
 }
 
+# Download the given image and check aginst the given MD5
+#
+# usage:
+#   cmd_download <filename> <md5>
+cmd_download() {
+    local filename="$1"
+    local md5="$2"
+    local url=$(get_image_url ${filename})
+    local filepath="${CACHE_DIR}/${filename}"
+    download_image "${url}" "${filepath}"
+    if checksum_image "${filepath}" "${md5}"; then
+        echo "Downloaded and MD5-checked image file."
+    else
+        echo "Downloaded image file does not match the MD5!"
+        exit ${EC_MD5}
+    fi
+}
+
 
 #
 # Main
@@ -276,6 +334,10 @@ case "${COMMAND}" in
     status)
         shift
         cmd_status "$@"
+        ;;
+    download)
+        shift
+        cmd_download "$@"
         ;;
     help|--help|-h|*)
         cmd_usage
