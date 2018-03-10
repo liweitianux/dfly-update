@@ -267,7 +267,8 @@ checksum_image() {
     local file="$1"
     local md5_match="$2"
     local md5
-    [ -f "${file}" ] || error ${EC_NOFILE} "checksum_image: file not exists"
+    [ -f "${file}" ] || \
+        error ${EC_NOFILE} "checksum_image: file not exists: ${file}"
     md5=$(md5 -q "${file}")
     if [ "${md5}" = "${md5_match}" ]; then
         return 0
@@ -642,20 +643,22 @@ cmd_download() {
 # Mount the given image file
 #
 # usage:
-#   cmd_mount <filepath>
+#   cmd_mount <file>
 cmd_mount() {
     [ $# -eq 1 ] || \
         error ${EC_ARGS} "cmd_mount: invalid arguments: $@"
-    local filepath="$1"
-    case "${filepath}" in
+    local file="$1"
+    [ -f "${file}" ] || \
+        error ${EC_NOFILE} "checksum_image: file not exists: ${file}"
+    case "${file}" in
         *.bz2)
-            echo -n "Decompressing file: ${filepath} ... "
-            bunzip2 "${filepath}"
+            echo -n "Decompressing file: ${file} ... "
+            bunzip2 "${file}"
             echo "DONE"
-            filepath="${filepath%.bz2}"
+            filepath="${file%.bz2}"
             ;;
     esac
-    mount_image "${filepath}" "${MNT_DIR}"
+    mount_image "${file}" "${MNT_DIR}"
 }
 
 # Back up the current kernel and world
