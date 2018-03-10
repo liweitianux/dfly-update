@@ -26,6 +26,7 @@ EC_TMPFILE=11
 EC_MD5=12
 EC_ARGS=13
 EC_FETCH=14
+EC_MOUNT=15
 
 
 #
@@ -45,6 +46,8 @@ UPDATE_BRANCH=
 
 # Temporary directory to cache the image, etc, ...
 CACHE_DIR="/var/tmp/${NAME}"
+# Directory to mount the system image
+MNT_DIR="/mnt/${NAME}"
 
 #
 # Helper Functions
@@ -250,6 +253,23 @@ download_image() {
         || exit ${EC_FETCH}
 }
 
+# Mount the downloaded image (IMG file)
+#
+# mount_image(imgfile, mntpnt)
+#
+mount_image() {
+    [ $# -eq 2 ] || exit ${EC_ARGS}
+    local imgfile="$1"
+    local mntpnt="$2"
+    local vn=$(vnconfig -l | fgrep "not in use" | head -n 1 | cut -d':' -f 1)
+    [ ! -d "${mntpnt}" ] && mkdir -v "${mntpnt}"
+    echo "Mounting image ${imgfile} to ${mntpnt} ..."
+    vnconfig -v -c ${vn} ${imgfile} || exit ${EC_VN}
+    mount -r /dev/${vn}s2a ${mntpnt} \
+        && echo "DONE" \
+        || exit ${EC_MOUNT}
+}
+
 }
 
 
@@ -278,6 +298,8 @@ Usage:
         Show local installed system version and remote available version.
     download <filename> <md5>
         Download the given image and check aginst the given MD5
+    mount <filepath>
+        Mount the given image file
 _EOF_
     echo
     cmd_version
@@ -335,6 +357,24 @@ cmd_download() {
     fi
 }
 
+# Mount the given image file
+#
+# usage:
+#   cmd_mount <filepath>
+cmd_mount() {
+    [ $# -eq 1 ] || exit ${EC_ARGS}
+    local filepath="$1"
+    case "${filepath}" in
+        *.bz2)
+            echo -n "Decompressing file: ${filepath} ..."
+            bunzip2 "${filepath}"
+            echo "DONE"
+            filepath="${filepath%.bz2}"
+            ;;
+    esac
+    mount_image "${filepath}" "${MNT_DIR}"
+}
+
 
 #
 # Main
@@ -356,6 +396,10 @@ case "${COMMAND}" in
     download)
         shift
         cmd_download "$@"
+        ;;
+    mount)
+        shift
+        cmd_mount "$@"
         ;;
     help|--help|-h|*)
         cmd_usage
