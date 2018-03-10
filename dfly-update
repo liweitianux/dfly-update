@@ -81,7 +81,7 @@ get_local_version() {
 
 # Get the latest remote system image
 # Returns:
-# "_filename=<latest.iso/img>; _md5=<md5/of/latest.iso/img>"
+# "_filename='<latest.iso/img>'; _md5='<md5/of/latest.iso/img>'"
 get_latest_image() {
     local latest_filename latest_md5 line
     if [ "${branch}" = "DEVELOPMENT" ]; then
@@ -102,8 +102,9 @@ get_latest_image() {
                fgrep -v 'gui-' | tail -n 1)
     fi
     latest_filename=$(echo "${line}" | awk -F'[()]' '{ print $2 }')
-    latest_md5=$(echo "${line}" | awk '{ print $5 }')
+    latest_md5=$(echo "${line}" | awk '{ print $4 }')
     rm -f ${tmpchecksum}
+    debug "_filename='${latest_filename}'; _md5='${latest_md5}'"
     echo "_filename='${latest_filename}'; _md5='${latest_md5}'"
 }
 
