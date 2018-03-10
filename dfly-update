@@ -404,10 +404,12 @@ install_system() {
     echo "Installing the new kernel and world ..."
     echo "  => Stashing the files to protect from overriding ..."
     for file in ${FILES_IGNORE}; do
-        file2="${file}.${BAK_SUF}"
-        echo -n "  * ${file}  "
-        mv -f "${file}" "${file2}"
-        echo "(stashed)"
+        if [ -f "${file}" ]; then
+            file2="${file}.${BAK_SUF}"
+            echo -n "  * ${file}  "
+            cp -af "${file}" "${file2}"  # NOTE: do NOT use "mv"
+            echo "(stashed)"
+        fi
     done
 
     echo "  => Creating distribution directories ..."
@@ -449,9 +451,11 @@ install_system() {
     echo "  => Recovering the stashed files ..."
     for file in ${FILES_IGNORE}; do
         file2="${file}.${BAK_SUF}"
-        echo -n "  * ${file}  "
-        mv -f "${file2}" "${file}"
-        echo "(recovered)"
+        if [ -f "${file2}" ]; then
+            echo -n "  * ${file}  "
+            mv -f "${file2}" "${file}"
+            echo "(recovered)"
+        fi
     done
     echo "  => DONE"
 }
