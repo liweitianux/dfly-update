@@ -525,7 +525,7 @@ cleanup() {
         fi
     done < ${tmpfile}
     rm -f ${tmpfile}
-    echo "  => DONE"
+    echo "DONE"
 }
 
 # Post-upgrade checking and report:
@@ -538,10 +538,10 @@ postupgrade() {
     echo "+---------------------------------------------------------+"
     find /etc -name "*.${NEW_SUF}" | sort
 
-    echo "+=========================================================+"
+    echo "+---------------------------------------------------------+"
     echo "Upgrade the packages by:"
     echo "    # pkg upgrade -f"
-    echo ""
+    echo "+=========================================================+"
 }
 
 
