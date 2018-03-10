@@ -32,6 +32,7 @@ EC_VN=17
 EC_TAR=18
 EC_MTREE=19
 EC_CPDUP=20
+EC_NOFILE=21
 
 
 #
@@ -266,8 +267,9 @@ checksum_image() {
     local file="$1"
     local md5_match="$2"
     local md5
-    [ -f "${file}" ] && md5=$(md5 -q "${file}")
-    if [ -n "${md5}" ] && [ "${md5}" = "${md5_match}" ]; then
+    [ -f "${file}" ] || error ${EC_NOFILE} "checksum_image: file not exists"
+    md5=$(md5 -q "${file}")
+    if [ "${md5}" = "${md5_match}" ]; then
         return 0
     else
         return 1
