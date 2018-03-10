@@ -516,8 +516,9 @@ cleanup() {
     make -f ${mk_upgrade} -V TO_REMOVE_LATE | tr ' ' '\n' >> ${tmpfile}
 
     # Credit: https://stackoverflow.com/a/10929511
+    # [ -n "${item}" ]: do not ignore the last line if not end with a '\n'
     while IFS='' read -r item || [ -n "${item}" ]; do
-        if [ -e ${item} -o -L ${item} ]; then
+        if [ -n "${item}" ] && [ -e ${item} -o -L ${item} ]; then
             echo "  * ${item}"
             chflags -Rf noschg ${item}
             rm -rf ${item}
