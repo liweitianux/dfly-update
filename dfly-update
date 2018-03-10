@@ -36,6 +36,9 @@ URL_DEVELOPMENT="${URL_BASE}/snapshots/x86_64/images"
 URL_RELEASE="${URL_BASE}/iso-images"
 
 # Default to track the same branch as the installed system
+# * MASTER (i.e., the DEVELOPMENT branch)
+# * RELEASE
+# * (empty) - same as the local installed branch
 UPDATE_BRANCH=
 
 
@@ -63,6 +66,42 @@ check_os() {
     fi
 }
 
+# contains(string, substring)
+#
+# Returns 0 if the specified string contains the specified substring,
+# otherwise returns 1.
+#
+# Credit: https://stackoverflow.com/a/8811800
+contains() {
+    local string="$1"
+    local substring="$2"
+    if [ "${string#*$substring}" != "$string" ]; then
+        return 0  # $substring is in $string
+    else
+        return 1  # $substring is not in $string
+    fi
+}
+
+# Determine the branch from the image filename
+get_branch_filename() {
+    if contains "$1" "-DEV-"; then
+        echo "MASTER"
+    else
+        echo "RELEASE"
+    fi
+}
+
+# Determine whether the given name refers to the master branch?
+is_master_branch() {
+    case "$1" in
+        master|MASTER|[dD][eE][vV]*)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
 
 # Get the branch of the installed system
 # * DEVELOPMENT
