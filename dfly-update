@@ -78,6 +78,14 @@ NEW_SUF="__new__"
 
 
 #
+# XXX: Variables share across two or more functions
+#
+_FILENAME=  # The latest remote system image filename
+_MD5=
+_HAS_UPDATE=
+
+
+#
 # Helper Functions
 #
 
@@ -581,6 +589,8 @@ Usage:
         Install the new kernel, world, and config files
     cleanup
         Clean up obsolete files, umount and remove image file
+    fly
+        Synthetic command to upgrade the system!
 _EOF_
     echo
     cmd_version
@@ -620,6 +630,11 @@ _EOF_
     else
         echo "??? Your DragonFly is newer than remote ???"
     fi
+
+    # XXX: set the global variables for use in `cmd_fly()`
+    _FILENAME="${_filename}"
+    _MD5=${_md5}
+    _HAS_UPDATE=${has_update}
 }
 
 # Download the given image and check aginst the given MD5
@@ -691,6 +706,21 @@ cmd_cleanup() {
     postupgrade
 }
 
+# Integrate all the upgrading steps -> fly :-)
+cmd_fly() {
+    [ $# -eq 0 ] || \
+        error ${EC_ARGS} "cmd_fly: invalid arguments: $@"
+    echo "Checking status ..."
+    cmd_status
+    if [ ${_HAS_UPDATE} -eq 1 ]; then
+        local file="${CACHE_DIR}/${_FILENAME}"
+        cmd_download "${_FILENAME}" ${_MD5}
+        cmd_mount ${file}
+        cmd_backup
+        cmd_upgrade
+        cmd_cleanup
+    fi
+}
 
 #
 # Main
@@ -707,7 +737,7 @@ case "${COMMAND}" in
         ;;
     status)
         shift
-        cmd_status "$@"
+        cmd_status
         ;;
     download)
         shift
@@ -728,6 +758,10 @@ case "${COMMAND}" in
     cleanup)
         shift
         cmd_cleanup
+        ;;
+    fly|go)
+        shift
+        cmd_fly
         ;;
     help|--help|-h|*)
         cmd_usage
