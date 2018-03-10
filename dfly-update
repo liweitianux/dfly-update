@@ -27,6 +27,8 @@ EC_MD5=12
 EC_ARGS=13
 EC_FETCH=14
 EC_MOUNT=15
+EC_UMOUNT=16
+EC_VN=17
 
 
 #
@@ -268,6 +270,37 @@ mount_image() {
     mount -r /dev/${vn}s2a ${mntpnt} \
         && echo "DONE" \
         || exit ${EC_MOUNT}
+}
+
+# Get the vn device name of the mounted image
+get_vn_devname() {
+    [ $# -eq 1 ] || exit ${EC_ARGS}
+    local mntpnt="$1"
+    local dev=$(mount | fgrep "${mntpnt}" | cut -d' ' -f 1 | cut -d'/' -f 3)
+    echo ${dev%s??}
+}
+
+# Get the filename configured for the vn device
+get_vn_filename() {
+    [ $# -eq 1 ] || exit ${EC_ARGS}
+    local vn="$1"
+    echo $(vnconfig -l ${vn} | awk '{ print $3 }')
+}
+
+# Umount the image
+#
+# umount_image(mntpnt)
+#
+umount_image() {
+    [ $# -eq 1 ] || exit ${EC_ARGS}
+    local mntpnt="$1"
+    local vn=$(get_vn_devname ${mntpnt})
+    echo -n "Umounting image from ${mntpnt} ... "
+    umount ${mntpnt} && echo "DONE" || exit ${EC_UMOUNT}
+    echo "Disable and unconfigure VN device ${vn} ... "
+    vnconfig -v -u ${vn} \
+        && echo "DONE" \
+        || exit ${EC_VN}
 }
 
 }
