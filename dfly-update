@@ -30,6 +30,8 @@ EC_MOUNT=15
 EC_UMOUNT=16
 EC_VN=17
 EC_TAR=18
+EC_MTREE=19
+EC_CPDUP=20
 
 
 #
@@ -53,6 +55,25 @@ CACHE_DIR="/var/tmp/${NAME}"
 MNT_DIR="/mnt/${NAME}"
 # Backup directory
 BACK_DIR="/var/backups/${NAME}"
+
+# Ignored files to be kept from overriding by the upgrade.
+FILES_IGNORE='
+    /boot/loader.conf
+    /etc/crypttab
+    /etc/fstab
+    /etc/group
+    /etc/localtime
+    /etc/master.passwd
+    /etc/passwd
+    /etc/pwd.db
+    /etc/rc.conf
+    /etc/spwd.db
+'
+# Filename suffix for the temporarily backup files to avoid overriding.
+BAK_SUF="__bak__"
+# Filename suffix for newly installed config files that need (manual)
+# merge.
+NEW_SUF="__new__"
 
 
 #
@@ -373,6 +394,66 @@ backup_world() {
         usr/bin usr/sbin usr/lib usr/libexec \
         && echo "  => DONE" \
         || exit ${EC_TAR}
+}
+
+# Install the new system (kernel and world, exclude /etc configurations)
+install_system() {
+    [ $# -eq 0 ] || \
+        error ${EC_ARGS} "install_system: invalid arguments: $@"
+    local file file2 item
+    echo "Installing the new kernel and world ..."
+    echo "  => Stashing the files to protect from overriding ..."
+    for file in ${FILES_IGNORE}; do
+        file2="${file}.${BAK_SUF}"
+        echo -n "  * ${file}  "
+        mv -f "${file}" "${file2}"
+        echo "(stashed)"
+    done
+
+    echo "  => Creating distribution directories ..."
+    mtree -deU -f ${MNT_DIR}/etc.hdd/mtree/BSD.root.dist \
+          -p / || exit ${EC_MTREE}
+    mtree -deU -f ${MNT_DIR}/etc.hdd/mtree/BSD.var.dist \
+          -p /var || exit ${EC_MTREE}
+    mtree -deU -f ${MNT_DIR}/etc.hdd/mtree/BSD.usr.dist \
+          -p /usr || exit ${EC_MTREE}
+    mtree -deU -f ${MNT_DIR}/etc.hdd/mtree/BSD.include.dist \
+          -p /usr/include || exit ${EC_MTREE}
+    mtree -deU -f ${MNT_DIR}/etc.hdd/mtree/BSD.local.dist \
+          -p /usr/local || exit ${EC_MTREE}
+
+    echo "  => Installing kernel and world ..."
+    for item in COPYRIGHT \
+            bin \
+            boot \
+            compat \
+            lib \
+            libexec \
+            sbin \
+            usr/Makefile \
+            usr/bin \
+            usr/games \
+            usr/include \
+            usr/lib \
+            usr/libdata \
+            usr/libexec \
+            usr/sbin \
+            usr/share \
+            var/msgs \
+            var/yp; do
+        echo -n "  * Installing: ${item} ... "
+        cpdup -o -u ${MNT_DIR}/${item} /${item} || exit ${EC_CPDUP}
+        echo "done!"
+    done
+
+    echo "  => Recovering the stashed files ..."
+    for file in ${FILES_IGNORE}; do
+        file2="${file}.${BAK_SUF}"
+        echo -n "  * ${file}  "
+        mv -f "${file2}" "${file}"
+        echo "(recovered)"
+    done
+    echo "  => DONE"
 }
 
 }
