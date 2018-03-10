@@ -32,7 +32,7 @@ EC_MD5=12
 
 # Base URL to Remote DragonFly BSD images
 URL_BASE="https://mirror-master.dragonflybsd.org"
-URL_DEVELOPMENT="${URL_BASE}/snapshots/x86_64/images"
+URL_MASTER="${URL_BASE}/snapshots/x86_64/images"
 URL_RELEASE="${URL_BASE}/iso-images"
 
 # Default to track the same branch as the installed system
@@ -118,16 +118,32 @@ get_local_version() {
     echo "${version}" | awk -F'-' '{ print $1 }' | tr -d 'v'
 }
 
+# Get the URL of the MD5 list
+get_md5list_url() {
+    local branch="$1"
+    if is_master_branch "${branch}"; then
+        echo "${URL_MASTER}/CHECKSUM.MD5"
+    else
+        echo "${URL_RELEASE}/md5.txt"
+    fi
+}
+
+# Determine the URL of the given image filename
+get_image_url() {
+    local filename="$1"
+    local branch=$(get_branch_filename ${filename})
+    if is_master_branch "${branch}"; then
+        echo "${URL_MASTER}/${filename}"
+    else
+        echo "${URL_RELEASE}/${filename}"
+    fi
+}
+
 # Get the latest remote system image
 # Returns:
 # "_filename='<latest.iso/img>'; _md5='<md5/of/latest.iso/img>'"
 get_latest_image() {
     local latest_filename latest_md5 line
-    if [ "${branch}" = "DEVELOPMENT" ]; then
-        url_checksum="${URL_DEVELOPMENT}/CHECKSUM.MD5"
-    else
-        url_checksum="${URL_RELEASE}/md5.txt"
-    fi
     local branch="$1"
     local url_checksum=$(get_md5list_url ${branch})
     local tmpchecksum=$(mktemp -t ${NAME}) || \
