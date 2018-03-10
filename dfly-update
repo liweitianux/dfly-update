@@ -441,12 +441,10 @@ cmd_download() {
     local url=$(get_image_url ${filename})
     local filepath="${CACHE_DIR}/${filename}"
     download_image "${url}" "${filepath}"
-    if checksum_image "${filepath}" "${md5}"; then
-        echo "Downloaded and MD5-checked image file."
-    else
-        echo "Downloaded image file does not match the MD5!"
-        exit ${EC_MD5}
-    fi
+    echo -n "MD5 checking file ... "
+    checksum_image "${filepath}" "${md5}" \
+        && echo "OK" \
+        || error ${EC_MD5} "FAILED!"
 }
 
 # Mount the given image file
