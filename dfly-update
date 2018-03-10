@@ -46,8 +46,7 @@ error() {
 }
 
 check_os() {
-    local os
-    os=$(uname -s)
+    local os=$(uname -s)
     if [ "${os}" != "DragonFly" ]; then
         error "Not a DragonFly BSD system!"
         exit ${EC_OS}
@@ -56,17 +55,16 @@ check_os() {
 
 # Load configurations from file
 load_config() {
-    local configfile tmpcfg
-    configfile="$1"
+    local configfile="$1"
+    local tmpcfg=$(mktemp -t ${NAME}) || exit ${EC_TMPFILE}
     if [ ! -r "${configfile}" ]; then
         error "Cannot read configuration file: ${configfile}"
         exit ${EC_CONFIGFILE}
     fi
     # Filter out only valid configurations to be secure
-    tmpcfg=$(mktemp)
     egrep '^[^ ]*=[^;&]*' ${configfile} > ${tmpcfg}
     . ${tmpcfg}
-    rm ${tmpcfg}
+    rm -f ${tmpcfg}
 }
 
 # Get the branch of the installed system
@@ -79,9 +77,8 @@ get_local_branch() {
 
 # Get the version of local installed system
 get_local_version() {
-    local version
     check_os
-    version=$(uname -v | awk '{ print $2 }')
+    local version=$(uname -v | awk '{ print $2 }')
     echo "${version}" | awk -F'-' '{ print $1 }' | tr -d 'v'
 }
 
@@ -89,15 +86,16 @@ get_local_version() {
 # Returns:
 # "_filename=<latest.iso/img>; _md5=<md5/of/latest.iso/img>"
 get_latest_image() {
-    local branch local url_checksum tmpchecksum
     local latest_filename latest_md5 line
-    branch="$1"
     if [ "${branch}" = "DEVELOPMENT" ]; then
         url_checksum="${URL_DEVELOPMENT}/CHECKSUM.MD5"
     else
         url_checksum="${URL_RELEASE}/md5.txt"
     fi
-    tmpchecksum=$(mktemp)
+    local branch="$1"
+    local url_checksum=$(get_md5list_url ${branch})
+    local tmpchecksum=$(mktemp -t ${NAME}) || \
+        exit ${EC_TMPFILE}
     echo "Fetch remote systems checksum: ${url_checksum}" >&2
     fetch -o ${tmpchecksum} "${url_checksum}"
     if [ "${branch}" = "DEVELOPMENT" ]; then
@@ -108,16 +106,16 @@ get_latest_image() {
     fi
     latest_filename=$(echo "${line}" | awk -F'[()]' '{ print $2 }')
     latest_md5=$(echo "${line}" | awk '{ print $5 }')
-    rm ${tmpchecksum}
+    rm -f ${tmpchecksum}
     echo "_filename='${latest_filename}'; _md5='${latest_md5}'"
 }
 
 # Extract the version from image filename
 get_version_filename() {
-    local branch filename version
-    branch="$1"
-    filename="$2"
     if [ "${branch}" = "DEVELOPMENT" ]; then
+    local branch="$1"
+    local filename="$2"
+    local version
         version=$(echo "${filename}" | cut -d'-' -f5 | cut -d'.' -f1-5)
     else
         version=$(echo "${filename}" | cut -d'-' -f3 | cut -d'_' -f1)
@@ -133,10 +131,9 @@ get_version_filename() {
 # * 1 : ver1 < ver2
 # * 2 : ver1 > ver2
 compare_version() {
-    lcal ver1 ver2 ver_low
-    ver1="$1"
-    ver2="$2"
-    ver_low=$(echo -e "${ver1}\n${ver2}" | sort -V | head -n 1)
+    local ver1="$1"
+    local ver2="$2"
+    local ver_low=$(echo -e "${ver1}\n${ver2}" | sort -V | head -n 1)
     if [ "${ver1}" = "${ver2}" ]; then
         echo 0
     elif [ "${ver1}" = "${ver_low}" ]; then
@@ -184,7 +181,7 @@ cmd_status() {
     else
         branch_remote=${UPDATE_BRANCH}
     fi
-    eval $(get_latest_image ${branch_remote}) || exit $?
+    eval "$(get_latest_image ${branch_remote})" || exit $?
     version_remote=$(get_version_filename ${branch_remote} ${_filename})
     cat <<_EOF_
 Local installed system:
