@@ -547,7 +547,7 @@ postupgrade() {
     echo "+=========================================================+"
     echo "The following config files need manual merge:"
     echo "+---------------------------------------------------------+"
-    find /etc -name "*.${NEW_SUF}" | sort
+    find -s /etc -name "*.${NEW_SUF}" | sort
 
     echo "+---------------------------------------------------------+"
     echo "Upgrade the packages by:"
