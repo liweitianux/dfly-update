@@ -29,6 +29,7 @@ EC_FETCH=14
 EC_MOUNT=15
 EC_UMOUNT=16
 EC_VN=17
+EC_TAR=18
 
 
 #
@@ -50,6 +51,9 @@ UPDATE_BRANCH=
 CACHE_DIR="/var/tmp/${NAME}"
 # Directory to mount the system image
 MNT_DIR="/mnt/${NAME}"
+# Backup directory
+BACK_DIR="/var/backups/${NAME}"
+
 
 #
 # Helper Functions
@@ -303,6 +307,55 @@ umount_image() {
         || exit ${EC_VN}
 }
 
+# Backup the old kernel
+backup_kernel() {
+    [ $# -eq 0 ] || exit ${EC_ARGS}
+    local kerndir="/boot/kernel"
+    local oldkerndir="${kerndir}.old"
+    echo "Backing up current kernel to ${oldkerndir} ..."
+    if [ -d "${oldkerndir}" ]; then
+        warn "Previous backed up kernel already exists!"
+        rm -r ${oldkerndir}
+        warn "Removed previously backed up kernel: ${oldkerndir}"
+    fi
+    mkdir -p ${oldkerndir}
+    chflags noschg ${kerndir}/kernel
+    objcopy --strip-debug ${kerndir}/kernel ${oldkerndir}/kernel
+    for f in ${kerndir}/*.ko; do
+        objcopy --strip-debug ${f} ${oldkerndir}/${f##*/}
+    done
+    [ -f "${kerndir}/initrd.img" ] && \
+        cp -p ${kerndir}/initrd.img ${oldkerndir}
+    [ -f "${kerndir}/initrd.img.gz" ] && \
+        cp -p ${kerndir}/initrd.img.gz ${oldkerndir}
+    echo "Backed up old kernel at: ${oldkerndir}"
+}
+
+# Backup the old world
+#
+# backup_world(backfile)
+#
+backup_world() {
+    [ $# -eq 1 ] || exit ${EC_ARGS}
+    local backfile="$1"
+    local backdir=$(dirname "${backfile}")
+    echo "Backing up current world to ${backfile} ..."
+    [ ! -d "${backdir}" ] && mkdir -v ${backdir}
+    if [ -f "${backfile}" ]; then
+        warn "  => Previously backed up world exists!"
+        rm -f "${backfile}"
+        warn "  => Removed previously backed world: ${backfile}"
+    fi
+    tar -czf "${backfile}" \
+        --options gzip:compression-level=1 \
+        -C / \
+        etc \
+        bin sbin lib libexec \
+        usr/bin usr/sbin usr/lib usr/libexec \
+        && echo "  => DONE" \
+        || exit ${EC_TAR}
+}
+
 }
 
 
@@ -335,6 +388,8 @@ Usage:
         Download the given image and check aginst the given MD5
     mount <filepath>
         Mount the given image file
+    backup
+        Back up the current kernel and world
 _EOF_
     echo
     cmd_version
@@ -412,6 +467,14 @@ cmd_mount() {
     mount_image "${filepath}" "${MNT_DIR}"
 }
 
+# Back up the current kernel and world
+cmd_backup() {
+    [ $# -eq 0 ] || exit ${EC_ARGS}
+    backup_kernel
+    backfile="${BACK_DIR}/world.tar.gz"
+    backup_world "${backfile}"
+}
+
 
 #
 # Main
@@ -437,6 +500,10 @@ case "${COMMAND}" in
     mount)
         shift
         cmd_mount "$@"
+        ;;
+    backup)
+        shift
+        cmd_backup
         ;;
     help|--help|-h|*)
         cmd_usage
