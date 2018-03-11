@@ -642,6 +642,8 @@ _EOF_
     _FILENAME="${_filename}"
     _MD5=${_md5}
     _HAS_UPDATE=${has_update}
+
+    return ${has_update}
 }
 
 # Download the given image and check aginst the given MD5
