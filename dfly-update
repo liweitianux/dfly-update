@@ -93,6 +93,10 @@ debug() {
     [ -n "${DEBUG}" ] && echo "DEBUG: $@" >&2 || true
 }
 
+log() {
+    echo "$@" >&2
+}
+
 warn() {
     echo "WARNING: $@" >&2
 }
@@ -210,7 +214,7 @@ get_latest_image() {
     local url_checksum=$(get_md5list_url ${branch})
     local tmpchecksum=$(mktemp -t ${NAME}) || exit ${EC_TMPFILE}
     local latest_filename latest_md5 line
-    echo "Fetch remote systems checksum: ${url_checksum}" >&2
+    log "Fetch remote systems checksum: ${url_checksum}"
     fetch -q -o ${tmpchecksum} "${url_checksum}" || exit ${EC_FETCH}
     if is_master_branch "${branch}"; then
         line=$(fgrep '.img.bz2' ${tmpchecksum} | tail -n 1)
@@ -228,7 +232,7 @@ get_latest_image() {
 # Extract the version from image filename
 get_version_filename() {
     [ $# -eq 2 ] || \
-        error ${EC_ARGS} "get_version_filename: $@"
+        error ${EC_ARGS} "get_version_filename: invalid arguments: $@"
     local branch="$1"
     local filename="$2"
     local version
@@ -418,7 +422,7 @@ install_system() {
         if [ -f "${file}" ]; then
             file2="${file}.${BAK_SUF}"
             echo -n "   * ${file}  "
-            cp -af "${file}" "${file2}"  # NOTE: do NOT use "mv"
+            cp -pf "${file}" "${file2}"  # NOTE: do NOT use "mv"
             echo "<backed>"
         fi
     done
@@ -592,7 +596,7 @@ Usage:
         Install the new kernel, world, and config files
     cleanup
         Clean up obsolete files, umount and remove image file
-    fly
+    fly | go
         Synthetic command to upgrade the system!
 _EOF_
     echo
