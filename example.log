@@ -1,0 +1,442 @@
+#
+# Example output for updating DragonFly BSD from 5.0.2-RELEASE to the latest master
+# 2018-03-11
+#
+
+dfly# uname -a
+DragonFly dfly.aaronly.me 5.0-RELEASE DragonFly v5.0.2-RELEASE #4: Sun Dec  3 17:42:25 EST 2017     root@www.shiningsilence.com:/usr/obj/home/justin/release/5_0/sys/X86_64_GENERIC  x86_64
+
+dfly# ./dfly-update fly
+Checking status ...
+Fetch remote systems checksum: https://mirror-master.dragonflybsd.org/snapshots/x86_64/images/CHECKSUM.MD5
+Local installed system:
+    branch: RELEASE
+    version: 5.0.2
+
+Remote available system:
+    branch: master
+    version: v5.1.0.1010.gf2063
+    filename: DragonFly-x86_64-20180310-DEV-v5.1.0.1010.gf2063.img.bz2
+    md5: cacfee6357e273433338e883bfd39e9f
+
+!!! Your DragonFly needs update !!!
+Downloading the new system image ...
+  <= https://mirror-master.dragonflybsd.org/snapshots/x86_64/images/DragonFly-x86_64-20180310-DEV-v5.1.0.1010.gf2063.img.bz2
+  => /var/tmp/dfly-update/DragonFly-x86_64-20180310-DEV-v5.1.0.1010.gf2063.img.bz2
+/var/tmp/dfly-update/DragonFly-x86_64-20180310100% of  290 MB  170 kBps 29m03s
+DONE
+MD5 checking file ... OK
+Decompressing file: /var/tmp/dfly-update/DragonFly-x86_64-20180310-DEV-v5.1.0.1010.gf2063.img.bz2 ... DONE
+Mounting image /var/tmp/dfly-update/DragonFly-x86_64-20180310-DEV-v5.1.0.1010.gf2063.img to /mnt/dfly-update ...
+/dev/vn0: /var/tmp/dfly-update/DragonFly-x86_64-20180310-DEV-v5.1.0.1010.gf2063.img, complete file mapped
+DONE
+Backing up current kernel to /boot/kernel.old ...
+WARNING: Previously backed kernel already exists!
+WARNING: Removed previously backed kernel: /boot/kernel.old
+DONE
+Backing up current world to /var/backups/dfly-update/world.tar.gz ...
+WARNING: Previously backed world exists!
+WARNING: Removed previously backed world: /var/backups/dfly-update/world.tar.gz
+DONE
+Installing the new kernel and world ...
+  => Backing up the files to protect from overriding ...
+   * /boot/loader.conf  <backed>
+   * /etc/fstab  <backed>
+   * /etc/group  <backed>
+   * /etc/localtime  <backed>
+   * /etc/master.passwd  <backed>
+   * /etc/passwd  <backed>
+   * /etc/pwd.db  <backed>
+   * /etc/rc.conf  <backed>
+   * /etc/spwd.db  <backed>
+  => Creating distribution directories ...
+./share/calendar/de_AT.ISO8859-15 missing (created)
+./share/games/boggle missing (created)
+./share/locale/is_IS.ISO8859-1 missing (created)
+./dev/misc/evdev missing (created)
+  => Installing kernel and world ...
+   * Installing: COPYRIGHT ... ok
+   * Installing: bin ... ok
+   * Installing: boot ... ok
+   * Installing: compat ... ok
+   * Installing: lib ... ok
+   * Installing: libexec ... ok
+   * Installing: sbin ... ok
+   * Installing: usr/Makefile ... ok
+   * Installing: usr/bin ... ok
+   * Installing: usr/games ... ok
+   * Installing: usr/include ... ok
+   * Installing: usr/lib ... ok
+   * Installing: usr/libdata ... ok
+   * Installing: usr/libexec ... ok
+   * Installing: usr/sbin ... ok
+   * Installing: usr/share ... ok
+   * Installing: var/msgs ... ok
+   * Installing: var/yp ... ok
+  => Recovering the backed files ...
+   * /boot/loader.conf  <recovered>
+   * /etc/fstab  <recovered>
+   * /etc/group  <recovered>
+   * /etc/localtime  <recovered>
+   * /etc/master.passwd  <recovered>
+   * /etc/passwd  <recovered>
+   * /etc/pwd.db  <recovered>
+   * /etc/rc.conf  <recovered>
+   * /etc/spwd.db  <recovered>
+  => DONE!
+Upgrading system ...
+  => Coping new /etc to: /var/tmp/dfly-update/etc.new
+  => Removing ignored files ...
+   * /var/tmp/dfly-update/etc.new/group  <ignored>
+   * /var/tmp/dfly-update/etc.new/master.passwd  <ignored>
+   * /var/tmp/dfly-update/etc.new/passwd  <ignored>
+   * /var/tmp/dfly-update/etc.new/pwd.db  <ignored>
+   * /var/tmp/dfly-update/etc.new/rc.conf  <ignored>
+   * /var/tmp/dfly-update/etc.new/spwd.db  <ignored>
+  => Identifying new config files for installing/merging ...
+   * /var/tmp/dfly-update/etc.new/auth.conf  (same)
+   * /var/tmp/dfly-update/etc.new/auto_master  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/autofs/include_ldap  (same)
+   * /var/tmp/dfly-update/etc.new/autofs/include_nis  [NEW]
+   * /var/tmp/dfly-update/etc.new/autofs/include_nis_nullfs  [NEW]
+   * /var/tmp/dfly-update/etc.new/autofs/special_hosts  (same)
+   * /var/tmp/dfly-update/etc.new/autofs/special_media  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/autofs/special_noauto  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/autofs/special_null  (same)
+   * /var/tmp/dfly-update/etc.new/bluetooth/bthcid.conf  (same)
+   * /var/tmp/dfly-update/etc.new/bluetooth/hosts  (same)
+   * /var/tmp/dfly-update/etc.new/bluetooth/protocols  (same)
+   * /var/tmp/dfly-update/etc.new/crontab  (same)
+   * /var/tmp/dfly-update/etc.new/csh.cshrc  (same)
+   * /var/tmp/dfly-update/etc.new/csh.login  (same)
+   * /var/tmp/dfly-update/etc.new/csh.logout  (same)
+   * /var/tmp/dfly-update/etc.new/defaults/compilers.conf  (same)
+   * /var/tmp/dfly-update/etc.new/defaults/devfs.conf  (same)
+   * /var/tmp/dfly-update/etc.new/defaults/make.conf  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/defaults/mkinitrd.conf  (same)
+   * /var/tmp/dfly-update/etc.new/defaults/periodic.conf  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/defaults/pfi.conf  (same)
+   * /var/tmp/dfly-update/etc.new/defaults/rc.conf  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/defaults/uuids  (same)
+   * /var/tmp/dfly-update/etc.new/devd/asus.conf  (same)
+   * /var/tmp/dfly-update/etc.new/devd/uath.conf  (same)
+   * /var/tmp/dfly-update/etc.new/devd/usb.conf  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/devd.conf  (same)
+   * /var/tmp/dfly-update/etc.new/devtab  (same)
+   * /var/tmp/dfly-update/etc.new/dhclient.conf  (same)
+   * /var/tmp/dfly-update/etc.new/disktab  (same)
+   * /var/tmp/dfly-update/etc.new/dma/auth.conf.sample  (same)
+   * /var/tmp/dfly-update/etc.new/dma/dma.conf.sample  (same)
+   * /var/tmp/dfly-update/etc.new/dntpd.conf  (same)
+   * /var/tmp/dfly-update/etc.new/dumpdates  (same)
+   * /var/tmp/dfly-update/etc.new/fbtab  (same)
+   * /var/tmp/dfly-update/etc.new/ftpusers  (same)
+   * /var/tmp/dfly-update/etc.new/gettytab  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/hosts  (same)
+   * /var/tmp/dfly-update/etc.new/hosts.allow  (same)
+   * /var/tmp/dfly-update/etc.new/hosts.equiv  (same)
+   * /var/tmp/dfly-update/etc.new/hosts.lpd  (same)
+   * /var/tmp/dfly-update/etc.new/inetd.conf  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/locate.rc  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/login.access  (same)
+   * /var/tmp/dfly-update/etc.new/login.conf  (same)
+   * /var/tmp/dfly-update/etc.new/login.conf.db  (same)
+   * /var/tmp/dfly-update/etc.new/mail/Makefile  (same)
+   * /var/tmp/dfly-update/etc.new/mail/README  (same)
+   * /var/tmp/dfly-update/etc.new/mail/access.sample  (same)
+   * /var/tmp/dfly-update/etc.new/mail/aliases  (same)
+   * /var/tmp/dfly-update/etc.new/mail/dragonfly.mc  (same)
+   * /var/tmp/dfly-update/etc.new/mail/dragonfly.submit.mc  (same)
+   * /var/tmp/dfly-update/etc.new/mail/mailer.conf  (same)
+   * /var/tmp/dfly-update/etc.new/mail/mailer.conf.dma  (same)
+   * /var/tmp/dfly-update/etc.new/mail/mailer.conf.opensmtpd  (same)
+   * /var/tmp/dfly-update/etc.new/mail/mailer.conf.postfix  (same)
+   * /var/tmp/dfly-update/etc.new/mail/mailer.conf.sendmail  (same)
+   * /var/tmp/dfly-update/etc.new/mail/mailertable.sample  (same)
+   * /var/tmp/dfly-update/etc.new/mail/virtusertable.sample  (same)
+   * /var/tmp/dfly-update/etc.new/mail.rc  (same)
+   * /var/tmp/dfly-update/etc.new/manpath.config  (same)
+   * /var/tmp/dfly-update/etc.new/modems  (same)
+   * /var/tmp/dfly-update/etc.new/motd  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/mtree/BSD.include.dist  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/mtree/BSD.local.dist  (same)
+   * /var/tmp/dfly-update/etc.new/mtree/BSD.root.dist  (same)
+   * /var/tmp/dfly-update/etc.new/mtree/BSD.usr.dist  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/mtree/BSD.var.dist  (same)
+   * /var/tmp/dfly-update/etc.new/netconfig  (same)
+   * /var/tmp/dfly-update/etc.new/network.subr  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/networks  (same)
+   * /var/tmp/dfly-update/etc.new/newsyslog.conf  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/nscd.conf  (same)
+   * /var/tmp/dfly-update/etc.new/nsmb.conf  (same)
+   * /var/tmp/dfly-update/etc.new/opieaccess  (same)
+   * /var/tmp/dfly-update/etc.new/pam.d/README  (same)
+   * /var/tmp/dfly-update/etc.new/pam.d/atrun  (same)
+   * /var/tmp/dfly-update/etc.new/pam.d/convert.sh  (same)
+   * /var/tmp/dfly-update/etc.new/pam.d/cron  (same)
+   * /var/tmp/dfly-update/etc.new/pam.d/ftp  (same)
+   * /var/tmp/dfly-update/etc.new/pam.d/ftpd  (same)
+   * /var/tmp/dfly-update/etc.new/pam.d/imap  (same)
+   * /var/tmp/dfly-update/etc.new/pam.d/login  (same)
+   * /var/tmp/dfly-update/etc.new/pam.d/other  (same)
+   * /var/tmp/dfly-update/etc.new/pam.d/passwd  (same)
+   * /var/tmp/dfly-update/etc.new/pam.d/pop3  (same)
+   * /var/tmp/dfly-update/etc.new/pam.d/rsh  (same)
+   * /var/tmp/dfly-update/etc.new/pam.d/sshd  (same)
+   * /var/tmp/dfly-update/etc.new/pam.d/su  (same)
+   * /var/tmp/dfly-update/etc.new/pam.d/system  (same)
+   * /var/tmp/dfly-update/etc.new/pam.d/telnetd  (same)
+   * /var/tmp/dfly-update/etc.new/pam.d/xdm  (same)
+   * /var/tmp/dfly-update/etc.new/pccard_ether  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/daily/100.clean-disks  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/daily/110.clean-tmps  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/daily/120.clean-preserve  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/daily/130.clean-msgs  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/daily/140.clean-rwho  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/daily/150.clean-hoststat  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/daily/160.clean-hammer  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/daily/161.clean-hammer2  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/daily/200.backup-passwd  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/daily/210.backup-aliases  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/daily/300.calendar  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/daily/310.accounting  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/daily/330.news  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/daily/400.status-disks  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/daily/420.status-network  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/daily/430.status-rwho  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/daily/440.status-mailq  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/daily/450.status-security  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/daily/460.status-mail-rejects  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/daily/470.status-named  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/daily/500.queuerun  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/daily/999.local  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/monthly/200.accounting  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/monthly/300.statistics  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/monthly/999.local  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/security/100.chksetuid  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/security/200.chkmounts  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/security/300.chkuid0  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/security/400.passwdless  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/security/410.logincheck  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/security/500.ipfwdenied  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/security/520.pfdenied  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/security/550.ipfwlimit  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/security/600.ip6fwdenied  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/security/650.ip6fwlimit  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/security/700.kernelmsg  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/security/800.loginfail  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/security/900.tcpwrap  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/security/security.functions  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/weekly/120.clean-kvmdb  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/weekly/310.locate  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/weekly/320.whatis  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/weekly/330.catman  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/weekly/340.noid  (same)
+   * /var/tmp/dfly-update/etc.new/periodic/weekly/999.local  (same)
+   * /var/tmp/dfly-update/etc.new/pf.conf  (same)
+   * /var/tmp/dfly-update/etc.new/pf.os  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/phones  (same)
+   * /var/tmp/dfly-update/etc.new/ppp/ppp.conf  (same)
+   * /var/tmp/dfly-update/etc.new/printcap  (same)
+   * /var/tmp/dfly-update/etc.new/profile  (same)
+   * /var/tmp/dfly-update/etc.new/protocols  (same)
+   * /var/tmp/dfly-update/etc.new/rc  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/DAEMON  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/LOGIN  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/NETWORKING  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/rc.d/SERVERS  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/accounting  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/addswap  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/adjkerntz  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/automount  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/automountd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/autounmountd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/bootconf  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/bootparams  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/btconfig  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/bthcid  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/ccd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/cleanvar  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/cleartmp  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/cron  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/cryptdisks  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/devd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/devfs  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/dhclient  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/diskless  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/dmesg  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/dntpd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/dumpon  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/fixbootfile  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/fsck  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/ftpd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/hostname  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/hotplugd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/inetd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/initdiskless  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/initrandom  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/ip6fw  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/ipfw  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/rc.d/ipsec  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/jail  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/keyserv  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/ldconfig  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/local  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/localdaemons  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/lockd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/lpd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/lvm  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/mixer  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/modules  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/motd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/mountcritlocal  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/mountcritremote  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/mountd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/moused  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/mroute6d  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/mrouted  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/msgs  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/named  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/netif  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/netoptions  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/network_ipv6  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/rc.d/newsyslog  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/nfsclient  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/nfsd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/nfsserver  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/nisdomain  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/nscd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/nsswitch  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/othermta  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/pf  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/pflog  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/powerd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/ppp  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/rc.d/pppoed  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/pwcheck  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/quota  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/random  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/rarpd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/rcconf  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/resident  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/rndcontrol  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/root  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/route6d  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/routed  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/routing  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/rc.d/rpcbind  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/rc.d/rtadvd  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/rc.d/rtsold  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/rwho  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/savecore  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/sdpd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/securelevel  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/sendmail  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/sensorsd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/serial  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/sppp  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/sshd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/statd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/swap1  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/syscons  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/sysctl  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/sysdb  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/syslogd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/sysvipcd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/timed  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/ttys  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/udevd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/udevd_early  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/varsym  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/vfs_quota  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/vinum  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/virecover  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/vkernel  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/vknetd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/watchdogd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/wpa_supplicant  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/ypbind  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/yppasswdd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/ypserv  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/ypset  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/ypupdated  (same)
+   * /var/tmp/dfly-update/etc.new/rc.d/ypxfrd  (same)
+   * /var/tmp/dfly-update/etc.new/rc.firewall  (same)
+   * /var/tmp/dfly-update/etc.new/rc.firewall6  (same)
+   * /var/tmp/dfly-update/etc.new/rc.resume  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/rc.sendmail  (same)
+   * /var/tmp/dfly-update/etc.new/rc.shutdown  (same)
+   * /var/tmp/dfly-update/etc.new/rc.subr  (same)
+   * /var/tmp/dfly-update/etc.new/rc.suspend  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/regdomain.xml  (same)
+   * /var/tmp/dfly-update/etc.new/remote  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/rpc  (same)
+   * /var/tmp/dfly-update/etc.new/sensorsd.conf  (same)
+   * /var/tmp/dfly-update/etc.new/services  (same)
+   * /var/tmp/dfly-update/etc.new/shells  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/ssh/moduli  (same)
+   * /var/tmp/dfly-update/etc.new/ssh/ssh_config  (same)
+   * /var/tmp/dfly-update/etc.new/ssh/sshd_config  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/ssl/openssl.cnf  (same)
+   * /var/tmp/dfly-update/etc.new/sysctl.conf  (same)
+   * /var/tmp/dfly-update/etc.new/syslog.conf  (same)
+   * /var/tmp/dfly-update/etc.new/ttys  (same)
+   * /var/tmp/dfly-update/etc.new/upgrade/Makefile_upgrade.inc  [UPDATED]
+   * /var/tmp/dfly-update/etc.new/wpa_supplicant.conf  (same)
+  => Coping new configurations over ...
+  => DONE!
++---------+
+| WARNING | Files with '__new__' suffix need manual merge!
++---------+
+Removing obsolete and deprecated files ...
+  * /usr/share/locale/is_IS.ISO8859-1
+  * /usr/sbin/dfuibe_installer
+  * /usr/sbin/dfuife_curses
+  * /usr/sbin/installer
+  * /usr/share/installer/cmdnames.conf
+  * /usr/share/installer/fred.txt
+  * /usr/share/installer/sources.conf
+  * /usr/share/man/man8/installer.8.gz
+DONE
+Umounting image from /mnt/dfly-update ... DONE
+Disable and unconfigure VN device vn0 ... 
+/dev/vn0: cleared
+DONE
+Removed image file: /build/var.tmp/dfly-update/DragonFly-x86_64-20180310-DEV-v5.1.0.1010.gf2063.img
++=========================================================+
+The following config files need manual merge:
++---------------------------------------------------------+
+/etc/auto_master.__new__
+/etc/autofs/special_media.__new__
+/etc/autofs/special_noauto.__new__
+/etc/defaults/make.conf.__new__
+/etc/defaults/periodic.conf.__new__
+/etc/defaults/rc.conf.__new__
+/etc/devd/usb.conf.__new__
+/etc/gettytab.__new__
+/etc/inetd.conf.__new__
+/etc/locate.rc.__new__
+/etc/motd.__new__
+/etc/mtree/BSD.include.dist.__new__
+/etc/mtree/BSD.usr.dist.__new__
+/etc/network.subr.__new__
+/etc/newsyslog.conf.__new__
+/etc/pf.os.__new__
+/etc/rc.d/NETWORKING.__new__
+/etc/rc.d/ipfw.__new__
+/etc/rc.d/network_ipv6.__new__
+/etc/rc.d/ppp.__new__
+/etc/rc.d/routing.__new__
+/etc/rc.d/rpcbind.__new__
+/etc/rc.d/rtadvd.__new__
+/etc/rc.resume.__new__
+/etc/rc.suspend.__new__
+/etc/remote.__new__
+/etc/shells.__new__
+/etc/ssh/sshd_config.__new__
+/etc/upgrade/Makefile_upgrade.inc.__new__
++---------------------------------------------------------+
+Upgrade the packages by:
+    # pkg upgrade -f
++=========================================================+
+

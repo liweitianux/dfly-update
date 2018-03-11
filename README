@@ -12,4 +12,10 @@ snapshot builds.
 
 This tool is written by the author to help keep the DragonFly BSD system
 on a low-end VPS up-to-date, without consuming too much resources to build
-and update from source.
+and update from source, which may be even impossible for a small VPS.
+
+Example
+-------
+An example output for updating DragonFly BSD from 5.0.2-RELEASE to the
+latest master (v5.1.0.1010.gf2063-DEVELOPMENT) can be found in the
+"example.log".
