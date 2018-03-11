@@ -11,7 +11,7 @@ set -e
 
 DEBUG=${DEBUG:-""}
 
-VERSION="0.1.0"
+VERSION="0.1.1"
 NAME="dfly-update"
 TOOLDIR="${0%/*}"
 PREFIX="${PREFIX:-${TOOLDIR}}"
@@ -471,38 +471,41 @@ install_system() {
     echo "  => DONE!"
 }
 
-# Upgrade the system with configurations
+# Upgrade the system with new configuration files
 upgrade_system() {
     [ $# -eq 0 ] || \
         error ${EC_ARGS} "upgrade_system: invalid arguments: $@"
     local etcdir="${CACHE_DIR}/etc.new"
-    local file file_new
+    local file file_etc file_new
     [ ! -d "${CACHE_DIR}" ] && mkdir "${CACHE_DIR}"
     echo "Upgrading system ..."
     echo "  => Coping new /etc to: ${etcdir}"
     cpdup -o -u ${MNT_DIR}/etc.hdd ${etcdir} || exit ${EC_CPDUP}
 
     echo "  => Removing ignored files ..."
-    for file in ${FILES_IGNORE}; do
-        file_new="${etcdir}/${file#/etc/}"
+    for file_etc in ${FILES_IGNORE}; do
+        file_new="${etcdir}/${file_etc#/etc/}"
         if [ -f "${file_new}" ]; then
             echo -n "   * ${file_new}  "
             rm -f "${file_new}"
             echo "<ignored>"
         fi
     done
-    echo "  => Renaming changed files while deleting others ..."
-    find -s /etc/ -not -name "*.${NEW_SUF}" -type f | while read -r file; do
-        file_new="${etcdir}/${file#/etc/}"
-        if [ -f "${file_new}" ]; then
-            echo -n "   * ${file_new}  "
-            if cmp -s "${file}" "${file_new}"; then
+    echo "  => Identifying new config files for installing/merging ..."
+    (cd "${etcdir}" && find -s . -type f) | while read -r file; do
+        file_etc="/etc/${file#./}"
+        file_new="${etcdir}/${file#./}"
+        echo -n "   * ${file_new}  "
+        if [ -f "${file_etc}" ]; then
+            if cmp -s "${file_etc}" "${file_new}"; then
                 rm -f "${file_new}"
                 echo "(same)"
             else
                 mv "${file_new}" "${file_new}.${NEW_SUF}"
-                echo "[NEW-VERSION]"
+                echo "[UPDATED]"
             fi
+        else
+            echo "[NEW]"
         fi
     done
 
