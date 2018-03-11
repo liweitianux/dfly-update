@@ -90,7 +90,7 @@ _HAS_UPDATE=
 #
 
 debug() {
-    [ -n "${DEBUG}" ] && echo "DEBUG: $@" >&2
+    [ -n "${DEBUG}" ] && echo "DEBUG: $@" >&2 || true
 }
 
 warn() {
