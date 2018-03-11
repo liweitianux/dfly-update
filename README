@@ -14,6 +14,16 @@ This tool is written by the author to help keep the DragonFly BSD system
 on a low-end VPS up-to-date, without consuming too much resources to build
 and update from source, which may be even impossible for a small VPS.
 
+Versions
+--------
+* 0.1.2 (2018-03-11) First usable version for broader testing
+
+Tests
+-----
+* 5.0.0-RELEASE -> 5.0.2-RELEASE
+* 5.0.2-RELEASE -> 5.1.0.1010.gf2063-DEVELOPMENT
+  (set "UPDATE_BRANCH=master")
+
 Example
 -------
 An example output for updating DragonFly BSD from 5.0.2-RELEASE to the
