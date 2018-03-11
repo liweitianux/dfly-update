@@ -7,6 +7,7 @@
 # snapshot builds.
 #
 
+# Exit immediately if any untested command fails in non-interactive mode
 set -e
 
 DEBUG=${DEBUG:-""}
@@ -90,6 +91,7 @@ _HAS_UPDATE=
 #
 
 debug() {
+    # Add "|| true" to work with "set -e"
     [ -n "${DEBUG}" ] && echo "DEBUG: $@" >&2 || true
 }
 
@@ -720,8 +722,9 @@ cmd_fly() {
     [ $# -eq 0 ] || \
         error ${EC_ARGS} "cmd_fly: invalid arguments: $@"
     echo "Checking status ..."
-    cmd_status
+    cmd_status || true
     if [ ${_HAS_UPDATE} -eq 1 ]; then
+        # Need to update
         local file="${CACHE_DIR}/${_FILENAME}"
         cmd_download "${_FILENAME}" ${_MD5}
         cmd_mount ${file}
