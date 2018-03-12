@@ -423,9 +423,8 @@ install_system() {
     for file in ${FILES_IGNORE}; do
         if [ -f "${file}" ]; then
             file2="${file}.${BAK_SUF}"
-            echo -n "   * ${file}  "
             cp -pf "${file}" "${file2}"  # NOTE: do NOT use "mv"
-            echo "<backed>"
+            echo "   * ${file}  <backed>"
         fi
     done
 
@@ -469,9 +468,8 @@ install_system() {
     for file in ${FILES_IGNORE}; do
         file2="${file}.${BAK_SUF}"
         if [ -f "${file2}" ]; then
-            echo -n "   * ${file}  "
             mv -f "${file2}" "${file}"
-            echo "<recovered>"
+            echo "   * ${file}  <recovered>"
         fi
     done
     echo "  => DONE!"
@@ -492,30 +490,27 @@ upgrade_system() {
     for file_etc in ${FILES_IGNORE}; do
         file_new="${etcdir}/${file_etc#/etc/}"
         if [ -f "${file_new}" ]; then
-            echo -n "   * ${file_new}  "
             rm -f "${file_new}"
-            echo "<ignored>"
+            echo "   * ${file_new}  <ignored>"
         fi
     done
-    echo "  => Identifying new config files for installing/merging ..."
+    echo "  => Identifying new/updated config files ..."
     (cd "${etcdir}" && find -s . -type f) | while read -r file; do
         file_etc="/etc/${file#./}"
         file_new="${etcdir}/${file#./}"
-        echo -n "   * ${file_new}  "
         if [ -f "${file_etc}" ]; then
             if cmp -s "${file_etc}" "${file_new}"; then
                 rm -f "${file_new}"
-                echo "(same)"
             else
                 mv "${file_new}" "${file_new}.${NEW_SUF}"
-                echo "[UPDATED]"
+                echo "   * ${file_new}  [UPDATED]"
             fi
         else
-            echo "[NEW]"
+            echo "   * ${file_new}  [NEW]"
         fi
     done
 
-    echo "  => Coping new configurations over ..."
+    echo "  => Installing new configurations ..."
     cpdup -o -u ${etcdir} /etc || exit ${EC_CPDUP}
     echo "  => DONE!"
     rm -rf "${etcdir}"
@@ -639,6 +634,7 @@ _EOF_
     else
         echo "??? Your DragonFly is newer than remote ???"
     fi
+    echo ""
 
     # XXX: set the global variables for use in `cmd_fly()`
     _FILENAME="${_filename}"
