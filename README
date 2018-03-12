@@ -14,6 +14,32 @@ This tool is written by the author to help keep the DragonFly BSD system
 on a low-end VPS up-to-date, without consuming too much resources to build
 and update from source, which may be even impossible for a small VPS.
 
+Usage
+-----
+dfly# git clone https://github.com/liweitianux/dfly-update
+dfly# cd dfly-update
+
+* one step update:
+  dfly# ./dfly-update fly
+
+* step-by-step update:
+  1. check local and remote status:
+     dfly# ./dfly-update status
+  2. use the above printed remote filename and md5 to download it:
+     dfly# ./dfly-update <filename> <md5>
+  3. mount the download image
+     dfly# ./dfly-update /var/tmp/dfly-update/<filename
+  4. backup the current kernel and world
+     dfly# ./dfly-update backup
+  5. install the new kernel, world, and config files
+     dfly# ./dfly-update upgrade
+  6. remove obsolete files, umount, and remove downloaded image
+     dfly# ./dfly-update cleanup
+
+NOTE:
+after this, you still need to merge the listed config files with suffix
+".__new__", and also upgrade the packages.
+
 Versions
 --------
 * 0.1.2 (2018-03-11) First usable version for broader testing
