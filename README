@@ -19,25 +19,25 @@ Usage
 dfly# git clone https://github.com/liweitianux/dfly-update
 dfly# cd dfly-update
 
-* one step update:
+* One-step update:
   dfly# ./dfly-update fly
 
-* step-by-step update:
+* Step-by-step update:
   1. check local and remote status:
      dfly# ./dfly-update status
   2. use the above printed remote filename and md5 to download it:
      dfly# ./dfly-update <filename> <md5>
-  3. mount the download image
-     dfly# ./dfly-update /var/tmp/dfly-update/<filename
-  4. backup the current kernel and world
+  3. mount the downloaded image:
+     dfly# ./dfly-update /var/tmp/dfly-update/<filename>
+  4. backup the current kernel and world (including /etc):
      dfly# ./dfly-update backup
-  5. install the new kernel, world, and config files
+  5. install the new kernel, world, and /etc files:
      dfly# ./dfly-update upgrade
-  6. remove obsolete files, umount, and remove downloaded image
+  6. remove obsolete files, umount, and remove the downloaded image:
      dfly# ./dfly-update cleanup
 
 NOTE:
-after this, you still need to merge the listed config files with suffix
+After this, you still need to merge the listed config files with suffix
 ".__new__", and also upgrade the packages.
 
 Versions
@@ -55,3 +55,11 @@ Example
 An example output for updating DragonFly BSD from 5.0.2-RELEASE to the
 latest master (v5.1.0.1010.gf2063-DEVELOPMENT) can be found in the
 "example.log".
+
+TODO
+----
+* Merge new users/groups, and update user/pass database
+* Interactively merge new/updated /etc files
+  (borrow OpenBSD's sysmerge(8))
+* Update locate and man page databases
+* ???
