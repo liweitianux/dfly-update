@@ -10,9 +10,35 @@ https://github.com/liweitianux/dfly-update
 A simple tool to update a DragonFly BSD system using binary releases or
 snapshot builds.
 
-This tool is written by the author to help keep the DragonFly BSD system
-on a low-end VPS up-to-date, without consuming too much resources to build
-and update from source, which may be even impossible for a small VPS.
+Tests, issue reports, suggestions, and pull requests are very welcome!
+Thanks.
+
+Introduction
+------------
+The officially supported method to update a DFly system is building and
+installing from sources.  However, it's time-consuming, hard or even
+impossible to build sources on a small or low-end VPS, and it's also not
+easy to transfer the built "/usr/obj" (which is rather big) to a remote
+VPS for an update.
+
+Therefore, a smiple tool to update a DragonFly BSD system directly from
+the officially built release or snapshot images is very useful and
+necessary.
+
+This tool refers to the installation procedures and the official source
+upgrade processes to implement the update task, which mainly includes
+the following steps:
+
+1. check local and remote available versions;
+2. download the latest release/master system image (.img.bz2);
+3. decompress and mount the image;
+4. backup the current kernel and world (including /etc);
+5. install the kernel and world using cpdup (similar to the installer);
+6. identify the new/changed /etc files, rename the conflicting ones with
+   suffix ".__new__" and then copy over;
+7. get obsolete files from Makefile_upgrade.inc and remove them;
+8. umount, remove image file, show the "*.__new__" files need manual
+   merge.
 
 Usage
 -----
@@ -46,20 +72,20 @@ Versions
 
 Tests
 -----
+* 4.8.0-RELEASE -> 5.0.2-RELEASE
 * 5.0.0-RELEASE -> 5.0.2-RELEASE
 * 5.0.2-RELEASE -> 5.1.0.1010.gf2063-DEVELOPMENT
   (set "UPDATE_BRANCH=master")
 
-Example
--------
-An example output for updating DragonFly BSD from 5.0.2-RELEASE to the
-latest master (v5.1.0.1010.gf2063-DEVELOPMENT) can be found in the
-"example.log".
+Examples
+--------
+Example output for updating DragonFly BSD using this tool can be found
+in the "examples" directory.
 
 TODO
 ----
 * Merge new users/groups, and update user/pass database
 * Interactively merge new/updated /etc files
-  (borrow OpenBSD's sysmerge(8))
+  (borrow OpenBSD's sysmerge(8) or improve/simplify mergemaster(8))
 * Update locate and man page databases
 * ???
