@@ -551,10 +551,13 @@ postupgrade() {
     echo "+---------------------------------------------------------+"
     find -s /etc -name "*.${NEW_SUF}" | sort
 
-    echo "+---------------------------------------------------------+"
-    echo "Upgrade the packages by:"
-    echo "    # pkg upgrade -f"
-    echo "+=========================================================+"
+    cat << _EOF_
++---------------------------------------------------------+
+After manually merge the above files, reboot into the new
+system, and upgrade the packages with:
+    # pkg upgrade -f
++=========================================================+
+_EOF_
 }
 
 
