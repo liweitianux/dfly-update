@@ -68,7 +68,11 @@ After this, you still need to merge the listed config files with suffix
 
 Versions
 --------
-* 0.1.2 (2018-03-11) First usable version for broader testing
+* 0.1.3 (2018-04-16)
+  - Fix the issue that the old Makefile_upgrade been used
+  - Make the upgrade messages more concise
+* 0.1.2 (2018-03-11)
+  - First usable version for broader testing
 
 Tests
 -----
@@ -76,6 +80,7 @@ Tests
 * 5.0.0-RELEASE -> 5.0.2-RELEASE
 * 5.0.2-RELEASE -> 5.1.0.1010.gf2063-DEVELOPMENT
   (set "UPDATE_BRANCH=master")
+* 5.1.0.884.g8095c-DEVELOPMENT -> v5.3.0.110.g8296de-DEVELOPMENT
 
 Examples
 --------
