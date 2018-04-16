@@ -9,10 +9,12 @@
 
 # Exit immediately if any untested command fails in non-interactive mode
 set -e
+# Exit with an error when an undefined variable is referenced
+set -u
 
 DEBUG=${DEBUG:-""}
 
-VERSION="0.1.2"
+VERSION="0.1.3"
 NAME="dfly-update"
 TOOLDIR="${0%/*}"
 PREFIX="${PREFIX:-${TOOLDIR}}"
@@ -79,7 +81,7 @@ NEW_SUF="__new__"
 
 
 #
-# XXX: Variables share across two or more functions
+# XXX: Variables shared across two or more functions
 #
 _FILENAME=  # The latest remote system image filename
 _MD5=
@@ -521,10 +523,12 @@ upgrade_system() {
 cleanup() {
     [ $# -eq 0 ] || \
         error ${EC_ARGS} "cleanup: invalid arguments: $@"
-    local mk_upgrade=/etc/upgrade/Makefile_upgrade.inc
-    local tmpfile=$(mktemp -t ${NAME}) || exit ${EC_TMPFILE}
-    local item
+    local mk_upgrade tmpfile item
+    mk_upgrade=/etc/upgrade/Makefile_upgrade.inc
+    [ -e "${mk_upgrade}.${NEW_SUF}" ] && mk_upgrade=${mk_upgrade}.${NEW_SUF}
+    tmpfile=$(mktemp -t ${NAME}) || exit ${EC_TMPFILE}
     echo "Removing obsolete and deprecated files ..."
+    echo "(according to ${mk_upgrade})"
     make -f ${mk_upgrade} -V TO_REMOVE      | tr ' ' '\n' >  ${tmpfile}
     make -f ${mk_upgrade} -V TO_REMOVE_LATE | tr ' ' '\n' >> ${tmpfile}
 
