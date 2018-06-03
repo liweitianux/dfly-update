@@ -610,13 +610,14 @@ cmd_status() {
         error ${EC_ARGS} "cmd_status: invalid arguments: $@"
     local branch=$(get_local_branch)
     local version=$(get_local_version)
-    local branch_remote version_remote has_update
+    local branch_remote version_remote has_update ret
     if [ -z "${UPDATE_BRANCH}" ]; then
         branch_remote=${branch}
     else
         branch_remote=${UPDATE_BRANCH}
     fi
-    eval "$(get_latest_image ${branch_remote})" || exit $?
+    ret="$(get_latest_image ${branch_remote})" || exit $?
+    eval "${ret}"
     version_remote=$(get_version_filename ${branch_remote} ${_filename})
     cat <<_EOF_
 Local installed system:
