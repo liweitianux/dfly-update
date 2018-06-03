@@ -523,7 +523,7 @@ upgrade_system() {
 cleanup() {
     [ $# -eq 0 ] || \
         error ${EC_ARGS} "cleanup: invalid arguments: $@"
-    local mk_upgrade tmpfile item
+    local mk_upgrade tmpfile item itemcat
     mk_upgrade=/etc/upgrade/Makefile_upgrade.inc
     [ -e "${mk_upgrade}.${NEW_SUF}" ] && mk_upgrade=${mk_upgrade}.${NEW_SUF}
     tmpfile=$(mktemp -t ${NAME}) || exit ${EC_TMPFILE}
@@ -539,6 +539,14 @@ cleanup() {
             echo "  * ${item}"
             chflags -Rf noschg ${item}
             rm -rf ${item}
+        fi
+        if echo "${item}" | grep -q '/man/man[1-9]/'; then
+            itemcat=$(echo "${item}" | sed 's|/man/man|/man/cat|')
+            if [ -e "${itemcat}" ]; then
+                echo "  * ${itemcat}"
+                chflags -Rf noschg ${itemcat}
+                rm -rf ${itemcat}
+            fi
         fi
     done < ${tmpfile}
     rm -f ${tmpfile}
