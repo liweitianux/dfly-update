@@ -67,6 +67,7 @@ FILES_IGNORE='
     /etc/fstab
     /etc/group
     /etc/localtime
+    /etc/login.conf.db
     /etc/master.passwd
     /etc/passwd
     /etc/pwd.db
