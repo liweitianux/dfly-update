@@ -441,12 +441,14 @@ install_system() {
           -p /usr/include || exit ${EC_MTREE}
 
     echo "  => Installing kernel and world ..."
-    for item in COPYRIGHT \
+    for item in \
+            COPYRIGHT \
             bin \
             boot \
             compat \
             lib \
             libexec \
+            rescue \
             sbin \
             usr/Makefile \
             usr/bin \
