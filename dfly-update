@@ -419,7 +419,8 @@ backup_world() {
 install_system() {
     [ $# -eq 0 ] || \
         error ${EC_ARGS} "install_system: invalid arguments: $@"
-    local file file2 item
+
+    local file file2 item path
     echo "Installing the new kernel and world ..."
     echo "  => Backing up the files to protect from overriding ..."
     for file in ${FILES_IGNORE}; do
@@ -431,14 +432,17 @@ install_system() {
     done
 
     echo "  => Creating distribution directories ..."
-    mtree -deUq -f ${MNT_DIR}/etc.hdd/mtree/BSD.root.dist \
-          -p /            || exit ${EC_MTREE}
-    mtree -deUq -f ${MNT_DIR}/etc.hdd/mtree/BSD.var.dist \
-          -p /var         || exit ${EC_MTREE}
-    mtree -deUq -f ${MNT_DIR}/etc.hdd/mtree/BSD.usr.dist \
-          -p /usr         || exit ${EC_MTREE}
-    mtree -deUq -f ${MNT_DIR}/etc.hdd/mtree/BSD.include.dist \
-          -p /usr/include || exit ${EC_MTREE}
+    for item in \
+            root:/ \
+            var:/var \
+            usr:/usr \
+            include:/usr/include; do
+        file=BSD.${item%:*}.dist
+        path=${item#*:}
+        echo "   * mtree: ${path} ... "
+        mtree -deUq -f ${MNT_DIR}/etc.hdd/mtree/${file} -p ${path} ||
+              exit ${EC_MTREE}
+    done
 
     echo "  => Installing kernel and world ..."
     for item in \
@@ -481,6 +485,7 @@ install_system() {
 upgrade_system() {
     [ $# -eq 0 ] || \
         error ${EC_ARGS} "upgrade_system: invalid arguments: $@"
+
     local etcdir="${CACHE_DIR}/etc.new"
     local file file_etc file_new
     [ ! -d "${CACHE_DIR}" ] && mkdir "${CACHE_DIR}"
@@ -496,6 +501,7 @@ upgrade_system() {
             echo "   * ${file_new}  <ignored>"
         fi
     done
+
     echo "  => Identifying new/updated config files ..."
     (cd "${etcdir}" && find -s . -type f) | while read -r file; do
         file_etc="/etc/${file#./}"
