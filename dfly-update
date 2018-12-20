@@ -567,6 +567,16 @@ cleanup() {
 postupgrade() {
     [ $# -eq 0 ] || \
         error ${EC_ARGS} "postupgrade: invalid arguments: $@"
+
+    echo "Rebuild capability database ..."
+    cap_mkdb /etc/login.conf
+    echo "Rebuild password database ..."
+    pwd_mkdb -p /etc/master.passwd
+    echo "Rebuild whatis database ..."
+    makewhatis
+    echo "Rebuild shared library cache ..."
+    ldconfig -R
+
     echo "+=========================================================+"
     echo "The following config files need manual merge:"
     echo "+---------------------------------------------------------+"

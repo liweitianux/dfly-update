@@ -94,5 +94,4 @@ TODO
 * Merge new users/groups
 * Interactively merge updated /etc files
   (borrow OpenBSD's sysmerge(8) or improve/simplify mergemaster(8))
-* Update databases such as user/password, login, locate, man page, etc.
 * rcs(1) controlled /etc upgrade
