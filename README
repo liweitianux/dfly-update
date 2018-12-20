@@ -10,8 +10,7 @@ https://github.com/liweitianux/dfly-update
 A simple tool to update a DragonFly BSD system using binary releases or
 snapshot builds.
 
-Tests, issue reports, suggestions, and pull requests are very welcome!
-Thanks.
+Tests, issue reports, and pull requests welcome :)
 
 Introduction
 ------------
@@ -89,8 +88,8 @@ in the "examples" directory.
 
 TODO
 ----
-* Merge new users/groups, and update user/pass database
-* Interactively merge new/updated /etc files
+* Merge new users/groups
+* Interactively merge updated /etc files
   (borrow OpenBSD's sysmerge(8) or improve/simplify mergemaster(8))
-* Update locate and man page databases
-* ???
+* Update databases such as user/password, login, locate, man page, etc.
+* rcs(1) controlled /etc upgrade
