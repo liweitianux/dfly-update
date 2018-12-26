@@ -114,12 +114,11 @@ error() {
 }
 
 check_os() {
-    [ $# -eq 0 ] || \
+    [ $# -eq 0 ] ||
         error ${EC_ARGS} "check_os: invalid arguments: $@"
-    local os=$(uname -s)
-    if [ "${os}" != "DragonFly" ]; then
+
+    [ "$(uname -s)" = "DragonFly" ] ||
         error ${EC_OS} "Not a DragonFly BSD system!"
-    fi
 }
 
 # contains(string, substring)
@@ -129,8 +128,9 @@ check_os() {
 #
 # Credit: https://stackoverflow.com/a/8811800
 contains() {
-    [ $# -eq 2 ] || \
+    [ $# -eq 2 ] ||
         error ${EC_ARGS} "contains: invalid arguments: $@"
+
     local string="$1"
     local substring="$2"
     if [ "${string#*$substring}" != "$string" ]; then
@@ -142,8 +142,9 @@ contains() {
 
 # Determine the branch from the image filename
 get_branch_filename() {
-    [ $# -eq 1 ] || \
+    [ $# -eq 1 ] ||
         error ${EC_ARGS} "get_branch_filename: invalid arguments: $@"
+
     if contains "$1" "-DEV-"; then
         echo "MASTER"
     else
@@ -153,8 +154,9 @@ get_branch_filename() {
 
 # Determine whether the given name refers to the master branch?
 is_master_branch() {
-    [ $# -eq 1 ] || \
+    [ $# -eq 1 ] ||
         error ${EC_ARGS} "is_master_branch: invalid arguments: $@"
+
     case "$1" in
         master|MASTER|[dD][eE][vV]*)
             return 0
@@ -169,16 +171,18 @@ is_master_branch() {
 # * DEVELOPMENT
 # * RELEASE
 get_local_branch() {
-    [ $# -eq 0 ] || \
+    [ $# -eq 0 ] ||
         error ${EC_ARGS} "get_local_branch: invalid arguments: $@"
+
     check_os
     uname -r | awk -F'-' '{ print $2 }'
 }
 
 # Get the version of local installed system
 get_local_version() {
-    [ $# -eq 0 ] || \
+    [ $# -eq 0 ] ||
         error ${EC_ARGS} "get_local_version: invalid arguments: $@"
+
     check_os
     local version=$(uname -v | awk '{ print $2 }')
     echo "${version}" | awk -F'-' '{ print $1 }' | tr -d 'v'
@@ -186,8 +190,9 @@ get_local_version() {
 
 # Get the URL of the MD5 list
 get_md5list_url() {
-    [ $# -eq 1 ] || \
+    [ $# -eq 1 ] ||
         error ${EC_ARGS} "get_md5list_url: invalid arguments: $@"
+
     local branch="$1"
     if is_master_branch "${branch}"; then
         echo "${URL_MASTER}/CHECKSUM.MD5"
@@ -198,8 +203,9 @@ get_md5list_url() {
 
 # Determine the URL of the given image filename
 get_image_url() {
-    [ $# -eq 1 ] || \
+    [ $# -eq 1 ] ||
         error ${EC_ARGS} "get_image_url: invalid arguments: $@"
+
     local filename="$1"
     local branch=$(get_branch_filename ${filename})
     if is_master_branch "${branch}"; then
@@ -213,8 +219,9 @@ get_image_url() {
 # Returns:
 # "_filename='<latest.iso/img>'; _md5='<md5/of/latest.iso/img>'"
 get_latest_image() {
-    [ $# -eq 1 ] || \
+    [ $# -eq 1 ] ||
         error ${EC_ARGS} "get_latest_image: invalid arguments: $@"
+
     local branch="$1"
     local url_checksum=$(get_md5list_url ${branch})
     local tmpchecksum=$(mktemp -t ${NAME}) || exit ${EC_TMPFILE}
@@ -224,7 +231,7 @@ get_latest_image() {
     if is_master_branch "${branch}"; then
         line=$(fgrep '.img.bz2' ${tmpchecksum} | tail -n 1)
     else
-        line=$(fgrep '.img.bz2' ${tmpchecksum} | \
+        line=$(fgrep '.img.bz2' ${tmpchecksum} |
                fgrep -v 'gui-' | tail -n 1)
     fi
     latest_filename=$(echo "${line}" | awk -F'[()]' '{ print $2 }')
@@ -236,8 +243,9 @@ get_latest_image() {
 
 # Extract the version from image filename
 get_version_filename() {
-    [ $# -eq 2 ] || \
+    [ $# -eq 2 ] ||
         error ${EC_ARGS} "get_version_filename: invalid arguments: $@"
+
     local branch="$1"
     local filename="$2"
     local version
@@ -257,8 +265,9 @@ get_version_filename() {
 # * 1 : ver1 < ver2
 # * 2 : ver1 > ver2
 compare_version() {
-    [ $# -eq 2 ] || \
+    [ $# -eq 2 ] ||
         error ${EC_ARGS} "compare_version: invalid arguments: $@"
+
     local ver1="$1"
     local ver2="$2"
     local ver_low=$(echo -e "${ver1}\n${ver2}" | sort -V | head -n 1)
@@ -279,13 +288,15 @@ compare_version() {
 # * 0 : file exists and its md5 hash matches the given one.
 # * 1 : otherwise
 checksum_image() {
-    [ $# -eq 2 ] || \
+    [ $# -eq 2 ] ||
         error ${EC_ARGS} "checksum_image: invalid arguments: $@"
+
     local file="$1"
     local md5_match="$2"
     local md5
-    [ -f "${file}" ] || \
+    [ -f "${file}" ] ||
         error ${EC_NOFILE} "checksum_image: file not exists: ${file}"
+
     md5=$(md5 -q "${file}")
     if [ "${md5}" = "${md5_match}" ]; then
         return 0
@@ -299,18 +310,19 @@ checksum_image() {
 # download_image(url, outfile)
 #
 download_image() {
-    [ $# -eq 2 ] || \
+    [ $# -eq 2 ] ||
         error ${EC_ARGS} "download_image: invalid arguments: $@"
+
     local url="$1"
     local outfile="$2"
     local outdir=$(dirname "${outfile}")
-    [ ! -d "${outdir}" ] && mkdir "${outdir}"
+    [ -d "${outdir}" ] || mkdir "${outdir}"
     echo "Downloading the new system image ..."
     echo "  <= ${url}"
     echo "  => ${outfile}"
-    fetch -o "${outfile}" "${url}" \
-        && echo "DONE" \
-        || exit ${EC_FETCH}
+    fetch -o "${outfile}" "${url}" &&
+        echo "DONE" ||
+        exit ${EC_FETCH}
 }
 
 # Mount the downloaded image (IMG file)
@@ -318,23 +330,25 @@ download_image() {
 # mount_image(imgfile, mntpnt)
 #
 mount_image() {
-    [ $# -eq 2 ] || \
+    [ $# -eq 2 ] ||
         error ${EC_ARGS} "mount_image: invalid arguments: $@"
+
     local imgfile="$1"
     local mntpnt="$2"
     local vn=$(vnconfig -l | fgrep "not in use" | head -n 1 | cut -d':' -f 1)
-    [ ! -d "${mntpnt}" ] && mkdir "${mntpnt}"
+    [ -d "${mntpnt}" ] || mkdir "${mntpnt}"
     echo "Mounting image ${imgfile} to ${mntpnt} ..."
     vnconfig -v -c ${vn} ${imgfile} || exit ${EC_VN}
-    mount -r /dev/${vn}s2a ${mntpnt} \
-        && echo "DONE" \
-        || exit ${EC_MOUNT}
+    mount -r /dev/${vn}s2a ${mntpnt} &&
+        echo "DONE" ||
+        exit ${EC_MOUNT}
 }
 
 # Get the vn device name of the mounted image
 get_vn_devname() {
-    [ $# -eq 1 ] || \
+    [ $# -eq 1 ] ||
         error ${EC_ARGS} "get_vn_devname: invalid arguments: $@"
+
     local mntpnt="$1"
     local dev=$(mount | fgrep "${mntpnt}" | cut -d' ' -f 1 | cut -d'/' -f 3)
     echo ${dev%s??}
@@ -342,8 +356,9 @@ get_vn_devname() {
 
 # Get the filename configured for the vn device
 get_vn_filename() {
-    [ $# -eq 1 ] || \
+    [ $# -eq 1 ] ||
         error ${EC_ARGS} "get_vn_filename: invalid arguments: $@"
+
     local vn="$1"
     echo $(vnconfig -l ${vn} | awk '{ print $3 }')
 }
@@ -353,39 +368,42 @@ get_vn_filename() {
 # umount_image(mntpnt)
 #
 umount_image() {
-    [ $# -eq 1 ] || \
+    [ $# -eq 1 ] ||
         error ${EC_ARGS} "umount_image: invalid arguments: $@"
+
     local mntpnt="$1"
     local vn=$(get_vn_devname ${mntpnt})
     echo -n "Umounting image from ${mntpnt} ... "
     umount ${mntpnt} && echo "DONE" || exit ${EC_UMOUNT}
     echo "Disable and unconfigure VN device ${vn} ... "
-    vnconfig -v -u ${vn} \
-        && echo "DONE" \
-        || exit ${EC_VN}
+    vnconfig -v -u ${vn} &&
+        echo "DONE" ||
+        exit ${EC_VN}
 }
 
 # Backup the old kernel
 backup_kernel() {
-    [ $# -eq 0 ] || \
+    [ $# -eq 0 ] ||
         error ${EC_ARGS} "backup_kernel: invalid arguments: $@"
+
     local kerndir="/boot/kernel"
     local oldkerndir="${kerndir}.old"
-    echo "Backing up current kernel to ${oldkerndir} ..."
-    if [ -d "${oldkerndir}" ]; then
-        warn "Previously backed kernel already exists!"
+    [ -d "${oldkerndir}" ] && {
         rm -r ${oldkerndir}
         warn "Removed previously backed kernel: ${oldkerndir}"
-    fi
+    }
+
+    echo "Backing up current kernel to ${oldkerndir} ..."
     mkdir -p ${oldkerndir}
     chflags noschg ${kerndir}/kernel
     objcopy --strip-debug ${kerndir}/kernel ${oldkerndir}/kernel
     for f in ${kerndir}/*.ko; do
         objcopy --strip-debug ${f} ${oldkerndir}/${f##*/}
     done
-    [ -f "${kerndir}/initrd.img" ] && \
+
+    [ -f "${kerndir}/initrd.img" ] &&
         cp -p ${kerndir}/initrd.img ${oldkerndir}
-    [ -f "${kerndir}/initrd.img.gz" ] && \
+    [ -f "${kerndir}/initrd.img.gz" ] &&
         cp -p ${kerndir}/initrd.img.gz ${oldkerndir}
     echo "DONE"
 }
@@ -395,30 +413,30 @@ backup_kernel() {
 # backup_world(backfile)
 #
 backup_world() {
-    [ $# -eq 1 ] || \
+    [ $# -eq 1 ] ||
         error ${EC_ARGS} "backup_world: invalid arguments: $@"
+
     local backfile="$1"
     local backdir=$(dirname "${backfile}")
-    echo "Backing up current world to ${backfile} ..."
-    [ ! -d "${backdir}" ] && mkdir ${backdir}
-    if [ -f "${backfile}" ]; then
-        warn "Previously backed world exists!"
+    [ -d "${backdir}" ] || mkdir ${backdir}
+    [ -f "${backfile}" ] && {
         rm -f "${backfile}"
         warn "Removed previously backed world: ${backfile}"
-    fi
+    }
+
+    echo "Backing up current world to ${backfile} ..."
     tar -czf "${backfile}" \
         --options gzip:compression-level=1 \
         -C / \
-        etc \
-        bin sbin lib libexec \
-        usr/bin usr/sbin usr/lib usr/libexec \
-        && echo "DONE" \
-        || exit ${EC_TAR}
+        etc bin sbin lib libexec \
+        usr/bin usr/sbin usr/lib usr/libexec &&
+            echo "DONE" ||
+            exit ${EC_TAR}
 }
 
-# Install the new system (kernel and world, exclude /etc configurations)
+# Install the new system (kernel and world, excluding /etc)
 install_system() {
-    [ $# -eq 0 ] || \
+    [ $# -eq 0 ] ||
         error ${EC_ARGS} "install_system: invalid arguments: $@"
 
     local file file2 item path
@@ -484,12 +502,12 @@ install_system() {
 
 # Upgrade the system with new configuration files
 upgrade_system() {
-    [ $# -eq 0 ] || \
+    [ $# -eq 0 ] ||
         error ${EC_ARGS} "upgrade_system: invalid arguments: $@"
 
     local etcdir="${CACHE_DIR}/etc.new"
     local file file_etc file_new
-    [ ! -d "${CACHE_DIR}" ] && mkdir "${CACHE_DIR}"
+    [ -d "${CACHE_DIR}" ] || mkdir "${CACHE_DIR}"
     echo "Upgrading system ..."
     echo "  => Coping new /etc to: ${etcdir}"
     cpdup -o -u ${MNT_DIR}/etc.hdd ${etcdir} || exit ${EC_CPDUP}
@@ -530,8 +548,9 @@ upgrade_system() {
 
 # Clean up obsolete and deprecated files
 cleanup() {
-    [ $# -eq 0 ] || \
+    [ $# -eq 0 ] ||
         error ${EC_ARGS} "cleanup: invalid arguments: $@"
+
     local mk_upgrade tmpfile item itemcat
     mk_upgrade=/etc/upgrade/Makefile_upgrade.inc
     [ -e "${mk_upgrade}.${NEW_SUF}" ] && mk_upgrade=${mk_upgrade}.${NEW_SUF}
@@ -565,7 +584,7 @@ cleanup() {
 # Post-upgrade checking and report:
 # * check /etc for newly installed files that need manual merge
 postupgrade() {
-    [ $# -eq 0 ] || \
+    [ $# -eq 0 ] ||
         error ${EC_ARGS} "postupgrade: invalid arguments: $@"
 
     echo "Rebuild capability database ..."
@@ -633,8 +652,9 @@ _EOF_
 }
 
 cmd_status() {
-    [ $# -eq 0 ] || \
+    [ $# -eq 0 ] ||
         error ${EC_ARGS} "cmd_status: invalid arguments: $@"
+
     local branch=$(get_local_branch)
     local version=$(get_local_version)
     local branch_remote version_remote has_update ret
@@ -682,17 +702,18 @@ _EOF_
 # usage:
 #   cmd_download <filename> <md5>
 cmd_download() {
-    [ $# -eq 2 ] || \
+    [ $# -eq 2 ] ||
         error ${EC_ARGS} "cmd_download: invalid arguments: $@"
+
     local filename="$1"
     local md5="$2"
     local url=$(get_image_url ${filename})
     local filepath="${CACHE_DIR}/${filename}"
     download_image "${url}" "${filepath}"
     echo -n "MD5 checking file ... "
-    checksum_image "${filepath}" "${md5}" \
-        && echo "OK" \
-        || error ${EC_MD5} "FAILED!"
+    checksum_image "${filepath}" "${md5}" &&
+        echo "OK" ||
+        error ${EC_MD5} "FAILED!"
 }
 
 # Mount the given image file
@@ -700,11 +721,13 @@ cmd_download() {
 # usage:
 #   cmd_mount <file>
 cmd_mount() {
-    [ $# -eq 1 ] || \
+    [ $# -eq 1 ] ||
         error ${EC_ARGS} "cmd_mount: invalid arguments: $@"
+
     local file="$1"
-    [ -f "${file}" ] || \
+    [ -f "${file}" ] ||
         error ${EC_NOFILE} "checksum_image: file not exists: ${file}"
+
     case "${file}" in
         *.bz2)
             echo -n "Decompressing file: ${file} ... "
@@ -718,8 +741,9 @@ cmd_mount() {
 
 # Back up the current kernel and world
 cmd_backup() {
-    [ $# -eq 0 ] || \
+    [ $# -eq 0 ] ||
         error ${EC_ARGS} "cmd_backup: invalid arguments: $@"
+
     backup_kernel
     backfile="${BACK_DIR}/world.tar.gz"
     backup_world "${backfile}"
@@ -727,16 +751,18 @@ cmd_backup() {
 
 # Install the new kernel, world, and config files.
 cmd_upgrade() {
-    [ $# -eq 0 ] || \
+    [ $# -eq 0 ] ||
         error ${EC_ARGS} "cmd_upgrade: invalid arguments: $@"
+
     install_system
     upgrade_system
 }
 
 # Clean up obsolete files, umount and remove image
 cmd_cleanup() {
-    [ $# -eq 0 ] || \
+    [ $# -eq 0 ] ||
         error ${EC_ARGS} "cmd_cleanup: invalid arguments: $@"
+
     cleanup
     local vn=$(get_vn_devname ${MNT_DIR})
     local filepath=$(get_vn_filename ${vn})
@@ -747,9 +773,11 @@ cmd_cleanup() {
 }
 
 # Integrate all the upgrading steps -> fly :-)
+# XXX: allow to use the given image file ...
 cmd_fly() {
-    [ $# -eq 0 ] || \
+    [ $# -eq 0 ] ||
         error ${EC_ARGS} "cmd_fly: invalid arguments: $@"
+
     echo "Checking status ..."
     cmd_status || true
     if [ ${_HAS_UPDATE} -eq 1 ]; then
@@ -772,10 +800,6 @@ cmd_fly() {
 
 COMMAND="$1"
 case "${COMMAND}" in
-    version|--version|-v)
-        shift
-        cmd_version
-        ;;
     status)
         shift
         cmd_status
@@ -802,7 +826,10 @@ case "${COMMAND}" in
         ;;
     fly|go)
         shift
-        cmd_fly
+        cmd_fly "$@"
+        ;;
+    version|--version|-v)
+        cmd_version
         ;;
     help|--help|-h|*)
         cmd_usage
