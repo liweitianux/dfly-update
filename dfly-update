@@ -335,10 +335,10 @@ mount_image() {
 
     local imgfile="$1"
     local mntpnt="$2"
-    local vn=$(vnconfig -l | fgrep "not in use" | head -n 1 | cut -d':' -f 1)
+    local vn
     [ -d "${mntpnt}" ] || mkdir "${mntpnt}"
     echo "Mounting image ${imgfile} to ${mntpnt} ..."
-    vnconfig -v -c ${vn} ${imgfile} || exit ${EC_VN}
+    vn=$(vnconfig -v -c vn ${imgfile}) || exit ${EC_VN}
     mount -r /dev/${vn}s2a ${mntpnt} &&
         echo "DONE" ||
         exit ${EC_MOUNT}
