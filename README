@@ -14,13 +14,13 @@ Tests, issue reports, and pull requests welcome :)
 
 Introduction
 ------------
-The officially supported method to update a DFly system is building and
-installing from sources.  However, it's time-consuming, hard or even
+The officially supported method to update a DragonFly system is building
+and installing from sources.  However, it's time-consuming, hard or even
 impossible to build sources on a small or low-end VPS, and it's also not
 easy to transfer the built "/usr/obj" (which is rather big) to a remote
 VPS for an update.
 
-Therefore, a smiple tool to update a DragonFly BSD system directly from
+Therefore, a simple tool to update a DragonFly BSD system directly from
 the officially built release or snapshot images is very useful and
 necessary.
 
@@ -67,6 +67,9 @@ After this, you still need to merge the listed config files with suffix
 
 Versions
 --------
+* 0.1.5 (2018-12-28)
+  - Rebuild multiple databases after upgrade
+  - Various minor cleanups
 * 0.1.4 (2018-12-20)
   - Install "/rescue" directory
   - Improve mtree(8) usage
