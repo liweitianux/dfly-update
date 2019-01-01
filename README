@@ -79,19 +79,6 @@ Versions
 * 0.1.2 (2018-03-11)
   - First usable version for broader testing
 
-Tests
------
-* 4.8.0-RELEASE -> 5.0.2-RELEASE
-* 5.0.0-RELEASE -> 5.0.2-RELEASE
-* 5.0.2-RELEASE -> 5.1.0.1010.gf2063-DEVELOPMENT
-  (set "UPDATE_BRANCH=master")
-* 5.1.0.884.g8095c-DEVELOPMENT -> v5.3.0.110.g8296de-DEVELOPMENT
-
-Examples
---------
-Example output for updating DragonFly BSD using this tool can be found
-in the "examples" directory.
-
 TODO
 ----
 * Merge new users/groups
