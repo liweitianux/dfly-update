@@ -123,15 +123,6 @@ get_vn_devname() {
     echo ${dev%s??}
 }
 
-# Get the filename configured for the vn device
-get_vn_filename() {
-    [ $# -eq 1 ] ||
-        error ${EC_ARGS} "get_vn_filename: invalid arguments: $@"
-
-    local vn="$1"
-    echo $(vnconfig -l ${vn} | awk '{ print $3 }')
-}
-
 # Umount the image
 #
 # umount_image(mntpnt)
@@ -426,16 +417,7 @@ cmd_mount() {
 
     local file="$1"
     [ -f "${file}" ] ||
-        error ${EC_NOFILE} "checksum_image: file not exists: ${file}"
-
-    case "${file}" in
-        *.bz2)
-            echo -n "Decompressing file: ${file} ... "
-            bunzip2 "${file}"
-            echo "DONE"
-            file="${file%.bz2}"
-            ;;
-    esac
+        error ${EC_NOFILE} "cmd_mount: file not exists: ${file}"
     mount_image "${file}" "${MNT_DIR}"
 }
 
@@ -464,11 +446,7 @@ cmd_cleanup() {
         error ${EC_ARGS} "cmd_cleanup: invalid arguments: $@"
 
     cleanup
-    local vn=$(get_vn_devname ${MNT_DIR})
-    local filepath=$(get_vn_filename ${vn})
     umount_image ${MNT_DIR}
-    rm -f ${filepath}
-    echo "Removed image file: ${filepath}"
     postupgrade
 }
 
