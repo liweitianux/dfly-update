@@ -86,10 +86,9 @@ FILES_IGNORE='
     /etc/rc.conf
     /etc/spwd.db
 '
-# Filename suffix for the temporarily backup files to avoid overriding.
+# Filename suffix for the temporarily backup files to avoid overwriting.
 BAK_SUF="__bak__"
-# Filename suffix for newly installed config files that need (manual)
-# merge.
+# Filename suffix for newly installed files that need (manual) merge.
 NEW_SUF="__new__"
 
 
@@ -243,7 +242,7 @@ install_system() {
         path=${item#*:}
         echo "   * mtree: ${path} ... "
         mtree -deUq -f ${MNT_DIR}/etc.hdd/mtree/${file} -p ${path} ||
-              exit ${EC_MTREE}
+            exit ${EC_MTREE}
     done
 
     echo "  => Installing kernel and world ..."
@@ -369,7 +368,7 @@ postupgrade() {
 +---------------------------------------------------------+
 After manually merge the above files, reboot into the new
 system, and upgrade the packages with:
-    # pkg upgrade -f
+    # pkg upgrade [-f]
 +=========================================================+
 _EOF_
 }

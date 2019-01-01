@@ -74,7 +74,7 @@ Versions
   - Install "/rescue" directory
   - Improve mtree(8) usage
 * 0.1.3 (2018-04-16)
-  - Fix the issue that the old Makefile_upgrade been used
+  - Fix the issue that the old "Makefile_upgrade" was used
   - Make the upgrade messages more concise
 * 0.1.2 (2018-03-11)
   - First usable version for broader testing
