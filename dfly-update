@@ -42,17 +42,6 @@ EC_NOFILE=21
 # Default Configurations
 #
 
-# Base URL to Remote DragonFly BSD images
-URL_BASE="https://mirror-master.dragonflybsd.org"
-URL_MASTER="${URL_BASE}/snapshots/x86_64/images"
-URL_RELEASE="${URL_BASE}/iso-images"
-
-# Default to track the same branch as the installed system
-# * MASTER (i.e., the DEVELOPMENT branch)
-# * RELEASE
-# * (empty) - same as the local installed branch
-UPDATE_BRANCH=
-
 # Temporary directory to cache the image, etc, ...
 CACHE_DIR="/var/tmp/${NAME}"
 # Directory to mount the system image
@@ -82,14 +71,6 @@ NEW_SUF="__new__"
 
 
 #
-# XXX: Variables shared across two or more functions
-#
-_FILENAME=  # The latest remote system image filename
-_MD5=
-_HAS_UPDATE=
-
-
-#
 # Helper Functions
 #
 
@@ -111,218 +92,6 @@ error() {
     shift
     echo "ERROR: $@" >&2
     exit ${ec}
-}
-
-check_os() {
-    [ $# -eq 0 ] ||
-        error ${EC_ARGS} "check_os: invalid arguments: $@"
-
-    [ "$(uname -s)" = "DragonFly" ] ||
-        error ${EC_OS} "Not a DragonFly BSD system!"
-}
-
-# contains(string, substring)
-#
-# Returns 0 if the specified string contains the specified substring,
-# otherwise returns 1.
-#
-# Credit: https://stackoverflow.com/a/8811800
-contains() {
-    [ $# -eq 2 ] ||
-        error ${EC_ARGS} "contains: invalid arguments: $@"
-
-    local string="$1"
-    local substring="$2"
-    if [ "${string#*$substring}" != "$string" ]; then
-        return 0  # $substring is in $string
-    else
-        return 1  # $substring is not in $string
-    fi
-}
-
-# Determine the branch from the image filename
-get_branch_filename() {
-    [ $# -eq 1 ] ||
-        error ${EC_ARGS} "get_branch_filename: invalid arguments: $@"
-
-    if contains "$1" "-DEV-"; then
-        echo "MASTER"
-    else
-        echo "RELEASE"
-    fi
-}
-
-# Determine whether the given name refers to the master branch?
-is_master_branch() {
-    [ $# -eq 1 ] ||
-        error ${EC_ARGS} "is_master_branch: invalid arguments: $@"
-
-    case "$1" in
-        master|MASTER|[dD][eE][vV]*)
-            return 0
-            ;;
-        *)
-            return 1
-            ;;
-    esac
-}
-
-# Get the branch of the installed system
-# * DEVELOPMENT
-# * RELEASE
-get_local_branch() {
-    [ $# -eq 0 ] ||
-        error ${EC_ARGS} "get_local_branch: invalid arguments: $@"
-
-    check_os
-    uname -r | awk -F'-' '{ print $2 }'
-}
-
-# Get the version of local installed system
-get_local_version() {
-    [ $# -eq 0 ] ||
-        error ${EC_ARGS} "get_local_version: invalid arguments: $@"
-
-    check_os
-    local version=$(uname -v | awk '{ print $2 }')
-    echo "${version}" | awk -F'-' '{ print $1 }' | tr -d 'v'
-}
-
-# Get the URL of the MD5 list
-get_md5list_url() {
-    [ $# -eq 1 ] ||
-        error ${EC_ARGS} "get_md5list_url: invalid arguments: $@"
-
-    local branch="$1"
-    if is_master_branch "${branch}"; then
-        echo "${URL_MASTER}/CHECKSUM.MD5"
-    else
-        echo "${URL_RELEASE}/md5.txt"
-    fi
-}
-
-# Determine the URL of the given image filename
-get_image_url() {
-    [ $# -eq 1 ] ||
-        error ${EC_ARGS} "get_image_url: invalid arguments: $@"
-
-    local filename="$1"
-    local branch=$(get_branch_filename ${filename})
-    if is_master_branch "${branch}"; then
-        echo "${URL_MASTER}/${filename}"
-    else
-        echo "${URL_RELEASE}/${filename}"
-    fi
-}
-
-# Get the latest remote system image
-# Returns:
-# "_filename='<latest.iso/img>'; _md5='<md5/of/latest.iso/img>'"
-get_latest_image() {
-    [ $# -eq 1 ] ||
-        error ${EC_ARGS} "get_latest_image: invalid arguments: $@"
-
-    local branch="$1"
-    local url_checksum=$(get_md5list_url ${branch})
-    local tmpchecksum=$(mktemp -t ${NAME}) || exit ${EC_TMPFILE}
-    local latest_filename latest_md5 line
-    log "Fetch remote systems checksum: ${url_checksum}"
-    fetch -q -o ${tmpchecksum} "${url_checksum}" || exit ${EC_FETCH}
-    if is_master_branch "${branch}"; then
-        line=$(fgrep '.img.bz2' ${tmpchecksum} | tail -n 1)
-    else
-        line=$(fgrep '.img.bz2' ${tmpchecksum} |
-               fgrep -v 'gui-' | tail -n 1)
-    fi
-    latest_filename=$(echo "${line}" | awk -F'[()]' '{ print $2 }')
-    latest_md5=$(echo "${line}" | awk '{ print $4 }')
-    rm -f ${tmpchecksum}
-    debug "_filename='${latest_filename}'; _md5='${latest_md5}'"
-    echo "_filename='${latest_filename}'; _md5='${latest_md5}'"
-}
-
-# Extract the version from image filename
-get_version_filename() {
-    [ $# -eq 2 ] ||
-        error ${EC_ARGS} "get_version_filename: invalid arguments: $@"
-
-    local branch="$1"
-    local filename="$2"
-    local version
-    if is_master_branch "${branch}"; then
-        version=$(echo "${filename}" | cut -d'-' -f5 | cut -d'.' -f1-5)
-    else
-        version=$(echo "${filename}" | cut -d'-' -f3 | cut -d'_' -f1)
-        version=${version#v}
-    fi
-    echo ${version}
-}
-
-# Compare between two version strings
-# Parameters: ver1 ver2
-# Returns values:
-# * 0 : ver1 = ver2
-# * 1 : ver1 < ver2
-# * 2 : ver1 > ver2
-compare_version() {
-    [ $# -eq 2 ] ||
-        error ${EC_ARGS} "compare_version: invalid arguments: $@"
-
-    local ver1="$1"
-    local ver2="$2"
-    local ver_low=$(echo -e "${ver1}\n${ver2}" | sort -V | head -n 1)
-    if [ "${ver1}" = "${ver2}" ]; then
-        echo 0
-    elif [ "${ver1}" = "${ver_low}" ]; then
-        echo 1
-    else
-        echo 2
-    fi
-}
-
-# Checksum the image file
-#
-# checksum_image(file, md5)
-#
-# Returns:
-# * 0 : file exists and its md5 hash matches the given one.
-# * 1 : otherwise
-checksum_image() {
-    [ $# -eq 2 ] ||
-        error ${EC_ARGS} "checksum_image: invalid arguments: $@"
-
-    local file="$1"
-    local md5_match="$2"
-    local md5
-    [ -f "${file}" ] ||
-        error ${EC_NOFILE} "checksum_image: file not exists: ${file}"
-
-    md5=$(md5 -q "${file}")
-    if [ "${md5}" = "${md5_match}" ]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
-# Download the latest system image (IMG file)
-#
-# download_image(url, outfile)
-#
-download_image() {
-    [ $# -eq 2 ] ||
-        error ${EC_ARGS} "download_image: invalid arguments: $@"
-
-    local url="$1"
-    local outfile="$2"
-    local outdir=$(dirname "${outfile}")
-    [ -d "${outdir}" ] || mkdir "${outdir}"
-    echo "Downloading the new system image ..."
-    echo "  <= ${url}"
-    echo "  => ${outfile}"
-    fetch -o "${outfile}" "${url}" &&
-        echo "DONE" ||
-        exit ${EC_FETCH}
 }
 
 # Mount the downloaded image (IMG file)
@@ -632,10 +401,6 @@ Usage:
         Show this help.
     version | --version | -v
         Show version information of this tool.
-    status
-        Show local installed system version and remote available version.
-    download <filename> <md5>
-        Download the given image and check aginst the given MD5
     mount <filepath>
         Mount the given image file
     backup
@@ -649,71 +414,6 @@ Usage:
 _EOF_
     echo
     cmd_version
-}
-
-cmd_status() {
-    [ $# -eq 0 ] ||
-        error ${EC_ARGS} "cmd_status: invalid arguments: $@"
-
-    local branch=$(get_local_branch)
-    local version=$(get_local_version)
-    local branch_remote version_remote has_update ret
-    if [ -z "${UPDATE_BRANCH}" ]; then
-        branch_remote=${branch}
-    else
-        branch_remote=${UPDATE_BRANCH}
-    fi
-    ret="$(get_latest_image ${branch_remote})" || exit $?
-    eval "${ret}"
-    version_remote=$(get_version_filename ${branch_remote} ${_filename})
-    cat <<_EOF_
-Local installed system:
-    branch: ${branch}
-    version: ${version}
-
-Remote available system:
-    branch: ${branch_remote}
-    version: ${version_remote}
-    filename: ${_filename}
-    md5: ${_md5}
-
-_EOF_
-
-    has_update=$(compare_version ${version} ${version_remote})
-    if [ ${has_update} -eq 0 ]; then
-        echo "^_^ Your DragonFly is up-to-date ^_^"
-    elif [ ${has_update} -eq 1 ]; then
-        echo "!!! Your DragonFly needs update !!!"
-    else
-        echo "??? Your DragonFly is newer than remote ???"
-    fi
-    echo ""
-
-    # XXX: set the global variables for use in `cmd_fly()`
-    _FILENAME="${_filename}"
-    _MD5=${_md5}
-    _HAS_UPDATE=${has_update}
-
-    return ${has_update}
-}
-
-# Download the given image and check aginst the given MD5
-#
-# usage:
-#   cmd_download <filename> <md5>
-cmd_download() {
-    [ $# -eq 2 ] ||
-        error ${EC_ARGS} "cmd_download: invalid arguments: $@"
-
-    local filename="$1"
-    local md5="$2"
-    local url=$(get_image_url ${filename})
-    local filepath="${CACHE_DIR}/${filename}"
-    download_image "${url}" "${filepath}"
-    echo -n "MD5 checking file ... "
-    checksum_image "${filepath}" "${md5}" &&
-        echo "OK" ||
-        error ${EC_MD5} "FAILED!"
 }
 
 # Mount the given image file
@@ -773,22 +473,14 @@ cmd_cleanup() {
 }
 
 # Integrate all the upgrading steps -> fly :-)
-# XXX: allow to use the given image file ...
 cmd_fly() {
-    [ $# -eq 0 ] ||
+    [ $# -eq 1 ] ||
         error ${EC_ARGS} "cmd_fly: invalid arguments: $@"
 
-    echo "Checking status ..."
-    cmd_status || true
-    if [ ${_HAS_UPDATE} -eq 1 ]; then
-        # Need to update
-        local file="${CACHE_DIR}/${_FILENAME}"
-        cmd_download "${_FILENAME}" ${_MD5}
-        cmd_mount ${file}
-        cmd_backup
-        cmd_upgrade
-        cmd_cleanup
-    fi
+    cmd_mount "$1"
+    cmd_backup
+    cmd_upgrade
+    cmd_cleanup
 }
 
 #
@@ -800,14 +492,6 @@ cmd_fly() {
 
 COMMAND="$1"
 case "${COMMAND}" in
-    status)
-        shift
-        cmd_status
-        ;;
-    download)
-        shift
-        cmd_download "$@"
-        ;;
     mount)
         shift
         cmd_mount "$@"
