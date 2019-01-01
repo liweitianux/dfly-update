@@ -28,38 +28,19 @@ This tool refers to the installation procedures and the official source
 upgrade processes to implement the update task, which mainly includes
 the following steps:
 
-1. check local and remote available versions;
-2. download the latest release/master system image (.img.bz2);
-3. decompress and mount the image;
-4. backup the current kernel and world (including /etc);
-5. install the kernel and world using cpdup (similar to the installer);
-6. identify the new/changed /etc files, rename the conflicting ones with
-   suffix ".__new__" and then copy over;
-7. get obsolete files from Makefile_upgrade.inc and remove them;
-8. umount, remove image file, show the "*.__new__" files need manual
-   merge.
+1. mount the system image file (*.img);
+2. backup the current kernel and world (including "/etc");
+3. install the kernel and world using cpdup (similar to the installer);
+4. identify the new/changed "/etc" files, rename the conflicting ones
+   with suffix ".__new__" and then copy over;
+5. get obsolete files from "Makefile_upgrade.inc" and remove them;
+6. umount, show the "*.__new__" files need manual merge.
 
 Usage
 -----
 dfly# git clone https://github.com/liweitianux/dfly-update
 dfly# cd dfly-update
-
-* One-step update:
-  dfly# ./dfly-update fly
-
-* Step-by-step update:
-  1. check local and remote status:
-     dfly# ./dfly-update status
-  2. use the above printed remote filename and md5 to download it:
-     dfly# ./dfly-update <filename> <md5>
-  3. mount the downloaded image:
-     dfly# ./dfly-update /var/tmp/dfly-update/<filename>
-  4. backup the current kernel and world (including /etc):
-     dfly# ./dfly-update backup
-  5. install the new kernel, world, and /etc files:
-     dfly# ./dfly-update upgrade
-  6. remove obsolete files, umount, and remove the downloaded image:
-     dfly# ./dfly-update cleanup
+dfly# ./dfly-update fly <path/to/downloaded/dfly.img>
 
 NOTE:
 After this, you still need to merge the listed config files with suffix
