@@ -42,6 +42,8 @@ EC_NOFILE=21
 # Default Configurations
 #
 
+# Path to the cpdup(1) executable
+CPDUP="/bin/cpdup"
 # Temporary directory to cache the image, etc, ...
 CACHE_DIR="/var/tmp/${NAME}"
 # Directory to mount the system image
@@ -248,7 +250,7 @@ install_system() {
     echo "  => Installing kernel and world ..."
     for item in ${INSTALL_LIST}; do
         echo -n "   * Installing: ${item} ... "
-        cpdup -o -u ${MNT_DIR}/${item} /${item} || exit ${EC_CPDUP}
+        ${CPDUP} -o -u ${MNT_DIR}/${item} /${item} || exit ${EC_CPDUP}
         echo "ok"
     done
 
@@ -273,7 +275,7 @@ upgrade_system() {
     [ -d "${CACHE_DIR}" ] || mkdir "${CACHE_DIR}"
     echo "Upgrading system ..."
     echo "  => Coping new /etc to: ${etcdir}"
-    cpdup -o -u ${MNT_DIR}/etc.hdd ${etcdir} || exit ${EC_CPDUP}
+    ${CPDUP} -o -u ${MNT_DIR}/etc.hdd ${etcdir} || exit ${EC_CPDUP}
 
     echo "  => Removing ignored files ..."
     for file_etc in ${FILES_IGNORE}; do
@@ -301,7 +303,7 @@ upgrade_system() {
     done
 
     echo "  => Installing new configurations ..."
-    cpdup -o -u ${etcdir} /etc || exit ${EC_CPDUP}
+    ${CPDUP} -o -u ${etcdir} /etc || exit ${EC_CPDUP}
     echo "  => DONE!"
     rm -rf "${etcdir}"
     echo "+---------+"
