@@ -88,8 +88,6 @@ FILES_IGNORE='
     /etc/rc.conf
     /etc/spwd.db
 '
-# Filename suffix for the temporarily backup files to avoid overwriting.
-BAK_SUF="__bak__"
 # Filename suffix for newly installed files that need (manual) merge.
 NEW_SUF="__new__"
 
@@ -223,16 +221,8 @@ install_system() {
     [ $# -eq 0 ] ||
         error ${EC_ARGS} "install_system: invalid arguments: $@"
 
-    local file file2 item path
+    local file item path cpignore
     echo "Installing the new kernel and world ..."
-    echo "  => Backing up the files to protect from overriding ..."
-    for file in ${FILES_IGNORE}; do
-        if [ -f "${file}" ]; then
-            file2="${file}.${BAK_SUF}"
-            cp -pf "${file}" "${file2}"  # NOTE: do NOT use "mv"
-            echo "   * ${file}  <backed>"
-        fi
-    done
 
     echo "  => Creating distribution directories ..."
     for item in \
@@ -247,21 +237,22 @@ install_system() {
             exit ${EC_MTREE}
     done
 
+    echo "  => Collecting files to be ignored ..."
+    cpignore=$(mktemp -t ${NAME}) || exit ${EC_TMPFILE}
+    for file in ${FILES_IGNORE}; do
+        echo "${file}" >> ${cpignore}
+        echo "   * ${file}  <ignored>"
+    done
+
     echo "  => Installing kernel and world ..."
     for item in ${INSTALL_LIST}; do
         echo -n "   * Installing: ${item} ... "
-        ${CPDUP} -o -u ${MNT_DIR}/${item} /${item} || exit ${EC_CPDUP}
+        ${CPDUP} -o -u -X ${cpignore} ${MNT_DIR}/${item} /${item} ||
+            exit ${EC_CPDUP}
         echo "ok"
     done
 
-    echo "  => Recovering the backed files ..."
-    for file in ${FILES_IGNORE}; do
-        file2="${file}.${BAK_SUF}"
-        if [ -f "${file2}" ]; then
-            mv -f "${file2}" "${file}"
-            echo "   * ${file}  <recovered>"
-        fi
-    done
+    rm -f ${cpignore}
     echo "  => DONE!"
 }
 
