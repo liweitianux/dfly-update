@@ -83,10 +83,13 @@ FILES_IGNORE='
     /etc/localtime
     /etc/login.conf.db
     /etc/master.passwd
+    /etc/motd
     /etc/passwd
     /etc/pwd.db
     /etc/rc.conf
     /etc/spwd.db
+    /var/db/locate.database
+    /var/mail/root
 '
 # Filename suffix for newly installed files that need (manual) merge.
 NEW_SUF="__new__"
