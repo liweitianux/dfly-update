@@ -352,6 +352,8 @@ postupgrade() {
     cap_mkdb /etc/login.conf
     echo "Rebuild password database ..."
     pwd_mkdb -p /etc/master.passwd
+    echo "Rebuild mail aliases db ..."
+    newaliases
     echo "Rebuild whatis database ..."
     makewhatis
     echo "Rebuild shared library cache ..."
