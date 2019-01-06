@@ -378,24 +378,16 @@ _EOF_
 # Sub-command functions
 #
 
-cmd_version() {
-    cat <<_EOF_
-v${VERSION}
-Aaron LI <aly@aaronly.me>
-https://github.com/liweitianux/dfly-update
-_EOF_
-}
-
 cmd_usage() {
     cat <<_EOF_
 dfly-update - DragonFly BSD update tool using binary release/snapshots
 
-Usage:
+Usage: ${0##*/} <sub-command>
+
+Sub-commands:
     help | --help | -h
         Show this help.
-    version | --version | -v
-        Show version information of this tool.
-    mount <filepath>
+    mount <dfly.img>
         Mount the given image file
     backup
         Back up the current kernel and world
@@ -403,11 +395,13 @@ Usage:
         Install the new kernel, world, and config files
     cleanup
         Clean up obsolete files, umount and remove image file
-    fly | go
+    fly <dfly.img>
         Synthetic command to upgrade the system!
+
+v${VERSION}
+Aaron LI <aly@aaronly.me>
+https://github.com/liweitianux/dfly-update
 _EOF_
-    echo
-    cmd_version
 }
 
 # Mount the given image file
@@ -471,8 +465,7 @@ cmd_fly() {
 # Load configurations
 [ -r "${CONFIGFILE}" ] && . ${CONFIGFILE}
 
-COMMAND="$1"
-case "${COMMAND}" in
+case $1 in
     mount)
         shift
         cmd_mount "$@"
@@ -489,12 +482,9 @@ case "${COMMAND}" in
         shift
         cmd_cleanup
         ;;
-    fly|go)
+    fly)
         shift
         cmd_fly "$@"
-        ;;
-    version|--version|-v)
-        cmd_version
         ;;
     help|--help|-h|*)
         cmd_usage
