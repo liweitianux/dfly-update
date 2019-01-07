@@ -36,6 +36,7 @@ EC_TAR=18
 EC_MTREE=19
 EC_CPDUP=20
 EC_NOFILE=21
+EC_PW=22
 
 
 #
@@ -261,6 +262,53 @@ install_system() {
     echo "  => DONE!"
 }
 
+# Add new users and groups
+add_users() {
+    [ $# -eq 0 ] ||
+        error ${EC_ARGS} "add_users: invalid arguments: $@"
+
+    local fpasswd="${MNT_DIR}/etc.hdd/master.passwd"
+    local fgroup="${MNT_DIR}/etc.hdd/group"
+    local _name _pw _uid _gid _gids item
+    local _class _change _expire _gecos _home _shell _members
+    echo "Adding new users and groups ..."
+
+    echo "  => Adding new users ..."
+    _gids=""
+    grep -Ev '^(#.*|\s*)$' ${fpasswd} |
+            while IFS=':' read -r _name _pw _uid _gid _class \
+                                  _change _expire _gecos _home _shell; do
+        pw usershow ${_name} -q >/dev/null && continue
+
+        # NOTE: There is circular dependence: 'groupadd' requires the members
+        #       already exist, while 'useradd' requires the group exists.
+        #       So first assign new users to the 'nogroup' group, and make
+        #       adjustments after group creation.
+        echo "   * ${_name}, ${_uid}, ${_gid}, ${_gecos}, ${_home}, ${_shell}"
+        pw useradd ${_name} \
+            -u ${_uid} -g nogroup -d ${_home} -s ${_shell} \
+            -L "${_class}" -c "${_gecos}" || exit ${EC_PW}
+        _gids="${_gids} ${_name}:${_gid}"
+    done
+
+    echo "  => Adding new groups ..."
+    grep -Ev '^(#.*|\s*)$' ${fgroup} |
+            while IFS=':' read -r _name _pw _gid _members; do
+        pw groupshow ${_name} -q >/dev/null && continue
+
+        echo "   * ${_name}, ${_gid}, ${_members}"
+        pw groupadd ${_name} -g ${_gid} -M "${_members}" || exit ${EC_PW}
+    done
+
+    echo "  => Adjusting the group of new users ..."
+    for item in ${_gids}; do
+        _name=${item%:*}
+        _gid=${item#*:}
+        echo "   * ${_name}, ${_gid}"
+        pw usermod ${_name} -g ${_gid} || exit ${EC_PW}
+    done
+}
+
 # Upgrade the system with new configuration files
 upgrade_system() {
     [ $# -eq 0 ] ||
@@ -434,6 +482,7 @@ cmd_upgrade() {
         error ${EC_ARGS} "cmd_upgrade: invalid arguments: $@"
 
     install_system
+    add_users
     upgrade_system
 }
 

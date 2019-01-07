@@ -31,10 +31,11 @@ the following steps:
 1. mount the system image file (*.img);
 2. backup the current kernel and world (including "/etc");
 3. install the kernel and world using cpdup (similar to the installer);
-4. identify the new/changed "/etc" files, rename the conflicting ones
+4. create new users and groups;
+5. identify the new/changed "/etc" files, rename the conflicting ones
    with suffix ".__new__" and then copy over;
-5. get obsolete files from "Makefile_upgrade.inc" and remove them;
-6. umount, show the "*.__new__" files need manual merge.
+6. get obsolete files from "Makefile_upgrade.inc" and remove them;
+7. umount, show the "*.__new__" files need manual merge.
 
 Usage
 -----
