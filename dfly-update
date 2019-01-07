@@ -125,9 +125,6 @@ error() {
 # mount_image(imgfile, mntpnt)
 #
 mount_image() {
-    [ $# -eq 2 ] ||
-        error ${EC_ARGS} "mount_image: invalid arguments: $@"
-
     local imgfile="$1"
     local mntpnt="$2"
     local vn
@@ -141,9 +138,6 @@ mount_image() {
 
 # Get the vn device name of the mounted image
 get_vn_devname() {
-    [ $# -eq 1 ] ||
-        error ${EC_ARGS} "get_vn_devname: invalid arguments: $@"
-
     local mntpnt="$1"
     local dev=$(mount | fgrep "${mntpnt}" | cut -d' ' -f 1 | cut -d'/' -f 3)
     echo ${dev%s??}
@@ -154,9 +148,6 @@ get_vn_devname() {
 # umount_image(mntpnt)
 #
 umount_image() {
-    [ $# -eq 1 ] ||
-        error ${EC_ARGS} "umount_image: invalid arguments: $@"
-
     local mntpnt="$1"
     local vn=$(get_vn_devname ${mntpnt})
     echo -n "Umounting image from ${mntpnt} ... "
@@ -169,9 +160,6 @@ umount_image() {
 
 # Backup the old kernel
 backup_kernel() {
-    [ $# -eq 0 ] ||
-        error ${EC_ARGS} "backup_kernel: invalid arguments: $@"
-
     local kerndir="/boot/kernel"
     local oldkerndir="${kerndir}.old"
     [ -d "${oldkerndir}" ] && {
@@ -199,9 +187,6 @@ backup_kernel() {
 # backup_world(backfile)
 #
 backup_world() {
-    [ $# -eq 1 ] ||
-        error ${EC_ARGS} "backup_world: invalid arguments: $@"
-
     local backfile="$1"
     local backdir=$(dirname "${backfile}")
     [ -d "${backdir}" ] || mkdir ${backdir}
@@ -222,9 +207,6 @@ backup_world() {
 
 # Install the new system (kernel and world, excluding /etc)
 install_system() {
-    [ $# -eq 0 ] ||
-        error ${EC_ARGS} "install_system: invalid arguments: $@"
-
     local file item path cpignore
     echo "Installing the new kernel and world ..."
 
@@ -236,7 +218,7 @@ install_system() {
             include:/usr/include; do
         file=BSD.${item%:*}.dist
         path=${item#*:}
-        echo "   * mtree: ${path} ... "
+        echo "   * mtree: ${path} ..."
         mtree -deUq -f ${MNT_DIR}/etc.hdd/mtree/${file} -p ${path} ||
             exit ${EC_MTREE}
     done
@@ -264,9 +246,6 @@ install_system() {
 
 # Add new users and groups
 add_users() {
-    [ $# -eq 0 ] ||
-        error ${EC_ARGS} "add_users: invalid arguments: $@"
-
     local fpasswd="${MNT_DIR}/etc.hdd/master.passwd"
     local fgroup="${MNT_DIR}/etc.hdd/group"
     local _name _pw _uid _gid _gids item
@@ -311,9 +290,6 @@ add_users() {
 
 # Upgrade the system with new configuration files
 upgrade_system() {
-    [ $# -eq 0 ] ||
-        error ${EC_ARGS} "upgrade_system: invalid arguments: $@"
-
     local etcdir="${CACHE_DIR}/etc.new"
     local file file_etc file_new
     [ -d "${CACHE_DIR}" ] || mkdir "${CACHE_DIR}"
@@ -357,15 +333,13 @@ upgrade_system() {
 
 # Clean up obsolete and deprecated files
 cleanup() {
-    [ $# -eq 0 ] ||
-        error ${EC_ARGS} "cleanup: invalid arguments: $@"
-
     local mk_upgrade tmpfile item itemcat
+
     mk_upgrade=/etc/upgrade/Makefile_upgrade.inc
     [ -e "${mk_upgrade}.${NEW_SUF}" ] && mk_upgrade=${mk_upgrade}.${NEW_SUF}
-    tmpfile=$(mktemp -t ${NAME}) || exit ${EC_TMPFILE}
     echo "Removing obsolete and deprecated files ..."
     echo "(according to ${mk_upgrade})"
+    tmpfile=$(mktemp -t ${NAME}) || exit ${EC_TMPFILE}
     make -f ${mk_upgrade} -V TO_REMOVE      | tr ' ' '\n' >  ${tmpfile}
     make -f ${mk_upgrade} -V TO_REMOVE_LATE | tr ' ' '\n' >> ${tmpfile}
 
@@ -390,12 +364,8 @@ cleanup() {
     echo "DONE"
 }
 
-# Post-upgrade checking and report:
-# * check /etc for newly installed files that need manual merge
+# Misc operations after upgrade
 postupgrade() {
-    [ $# -eq 0 ] ||
-        error ${EC_ARGS} "postupgrade: invalid arguments: $@"
-
     echo "Rebuild capability database ..."
     cap_mkdb /etc/login.conf
     echo "Rebuild password database ..."
@@ -453,9 +423,6 @@ _EOF_
 }
 
 # Mount the given image file
-#
-# usage:
-#   cmd_mount <file>
 cmd_mount() {
     [ $# -eq 1 ] ||
         error ${EC_ARGS} "cmd_mount: invalid arguments: $@"
