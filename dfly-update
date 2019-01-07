@@ -240,7 +240,7 @@ install_system() {
     echo "  => Collecting files to be ignored ..."
     cpignore=$(mktemp -t ${NAME}) || exit ${EC_TMPFILE}
     for file in ${FILES_IGNORE}; do
-        echo "${file}" >> ${cpignore}
+        echo "${MNT_DIR}/${file}" >> ${cpignore}
         echo "   * ${file}  <ignored>"
     done
 
