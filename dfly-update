@@ -129,7 +129,7 @@ mount_image() {
     local vn
     [ -d "${mntpnt}" ] || mkdir "${mntpnt}"
     echo "Mounting image ${imgfile} to ${mntpnt} ..."
-    vn=$(vnconfig -v -c vn ${imgfile}) || exit ${EC_VN}
+    vn=$(vnconfig -c vn ${imgfile}) || exit ${EC_VN}
     mount -r /dev/${vn}s2a ${mntpnt} &&
         echo "DONE" ||
         exit ${EC_MOUNT}
@@ -158,7 +158,7 @@ umount_image() {
     echo -n "Umounting image from ${mntpnt} ... "
     umount ${mntpnt} && echo "DONE" || exit ${EC_UMOUNT}
     echo "Disable and unconfigure VN device ${vn} ... "
-    vnconfig -v -u ${vn} &&
+    vnconfig -u ${vn} &&
         echo "DONE" ||
         exit ${EC_VN}
 }
