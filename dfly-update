@@ -200,6 +200,18 @@ backup_world() {
             exit ${EC_TAR}
 }
 
+# Make the ignore file for cpdup(1)
+make_cpignore() {
+    local cpignore=$(mktemp -t ${NAME}) || exit ${EC_TMPFILE}
+    local f f2
+    for f in ${FILES_IGNORE}; do
+        f2=$(echo "${f}" | sed 's|^/etc/|/etc.hdd/|')
+        # NOTE: 'cpdup -X' doesn't normalize multiple '/' to be one.
+        echo "${MNT_DIR%/}/${f2#/}" >> ${cpignore}
+    done
+    echo ${cpignore}
+}
+
 # Install the new system (kernel and world, excluding /etc)
 install_system() {
     local file item path cpignore
@@ -217,13 +229,8 @@ install_system() {
             exit ${EC_MTREE}
     done
 
-    echo "  => Collecting files to be ignored ..."
-    cpignore=$(mktemp -t ${NAME}) || exit ${EC_TMPFILE}
-    for file in ${FILES_IGNORE}; do
-        # NOTE: 'cpdup -X' doesn't normalize multiple '/' to be one.
-        echo "${MNT_DIR%/}/${file#/}" >> ${cpignore}
-        echo "   * ${file}  <ignored>"
-    done
+    echo "  => Collecting ignored files for cpdup ..."
+    cpignore=$(make_cpignore) || exit ${EC_TMPFILE}
 
     echo "  => Installing kernel and world ..."
     for item in ${INSTALL_LIST}; do
@@ -287,22 +294,18 @@ add_users() {
 
 # Upgrade the system with new configuration files
 upgrade_system() {
-    local etcdir file file_etc file_new
+    local etcdir file file_etc file_new cpignore
 
     [ -d "${CACHE_DIR}" ] || mkdir "${CACHE_DIR}"
     etcdir="${CACHE_DIR}/etc.new"
+    rm -rf "${etcdir}"
 
+    echo "  => Collecting ignored files for cpdup ..."
+    cpignore=$(make_cpignore) || exit ${EC_TMPFILE}
     echo "  => Coping new /etc to: ${etcdir}"
-    ${CPDUP} -o ${MNT_DIR}/etc.hdd ${etcdir} || exit ${EC_CPDUP}
-
-    echo "  => Removing ignored files ..."
-    for file_etc in ${FILES_IGNORE}; do
-        file_new="${etcdir}/${file_etc#/etc/}"
-        if [ -f "${file_new}" ]; then
-            rm -f "${file_new}"
-            echo "   * ${file_new}  <ignored>"
-        fi
-    done
+    ${CPDUP} -o -X ${cpignore} ${MNT_DIR%/}/etc.hdd ${etcdir} ||
+        exit ${EC_CPDUP}
+    rm -f ${cpignore}
 
     echo "  => Identifying new/updated config files ..."
     (cd "${etcdir}" && find -s . -type f) | while read -r file; do
