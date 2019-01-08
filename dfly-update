@@ -129,11 +129,8 @@ mount_image() {
     local mntpnt="$2"
     local vn
     [ -d "${mntpnt}" ] || mkdir "${mntpnt}"
-    echo "Mounting image ${imgfile} to ${mntpnt} ..."
     vn=$(vnconfig -c vn ${imgfile}) || exit ${EC_VN}
-    mount -r /dev/${vn}s2a ${mntpnt} &&
-        echo "DONE" ||
-        exit ${EC_MOUNT}
+    mount -r /dev/${vn}s2a ${mntpnt} || exit ${EC_MOUNT}
 }
 
 # Get the vn device name of the mounted image
@@ -150,12 +147,9 @@ get_vn_devname() {
 umount_image() {
     local mntpnt="$1"
     local vn=$(get_vn_devname ${mntpnt})
-    echo -n "Umounting image from ${mntpnt} ... "
-    umount ${mntpnt} && echo "DONE" || exit ${EC_UMOUNT}
-    echo "Disable and unconfigure VN device ${vn} ... "
-    vnconfig -u ${vn} &&
-        echo "DONE" ||
-        exit ${EC_VN}
+    umount ${mntpnt} || exit ${EC_UMOUNT}
+    echo "Disable and unconfigure VN device ${vn} ..."
+    vnconfig -u ${vn} || exit ${EC_VN}
 }
 
 # Backup the old kernel
@@ -208,7 +202,6 @@ backup_world() {
 # Install the new system (kernel and world, excluding /etc)
 install_system() {
     local file item path cpignore
-    echo "Installing the new kernel and world ..."
 
     echo "  => Creating distribution directories ..."
     for item in \
@@ -250,7 +243,6 @@ add_users() {
     local fgroup="${MNT_DIR}/etc.hdd/group"
     local _name _pw _uid _gid _gids item
     local _class _change _expire _gecos _home _shell _members
-    echo "Adding new users and groups ..."
 
     echo "  => Adding new users ..."
     _gids=""
@@ -290,10 +282,11 @@ add_users() {
 
 # Upgrade the system with new configuration files
 upgrade_system() {
-    local etcdir="${CACHE_DIR}/etc.new"
-    local file file_etc file_new
+    local etcdir file file_etc file_new
+
     [ -d "${CACHE_DIR}" ] || mkdir "${CACHE_DIR}"
-    echo "Upgrading system ..."
+    etcdir="${CACHE_DIR}/etc.new"
+
     echo "  => Coping new /etc to: ${etcdir}"
     ${CPDUP} -o ${MNT_DIR}/etc.hdd ${etcdir} || exit ${EC_CPDUP}
 
@@ -392,26 +385,48 @@ _EOF_
 }
 
 
-usage() {
-    cat <<_EOF_
-Upgrade a DragonFly BSD system using a binary release/snapshot
-
-Usage: ${0##*/} [-h] [-c <config-file>] [-d] <dfly.img>
-
-v${VERSION}
-${AUTHOR}
-${URL}
-_EOF_
-}
-
-
 #
 # Main
 #
 
-CONFIGFILE=""
+usage() {
+    cat <<_EOF_
+Upgrade a DragonFly BSD system using a binary release/snapshot
 
-while getopts :c:dh opt; do
+Usage: ${0##*/} [-h] [-c <config-file>] [-d]
+    [-s <start-step>] [-S <stop-step] <dfly.img>
+
+Options:
+    -h : show this help
+    -c : load the specified configuration file
+    -d : enable the debug mode
+    -s : start at the specified step
+    -S : stop at the specified step (inclusive)
+
+Steps:
+0. mount the system image
+1. backup current kernel
+2. backup current world
+3. install new kernel and world (excluding /etc)
+4. add new users and groups
+5. install and update /etc files
+6. clean up obsolete files
+7. umount the system image
+8. misc operations after upgrade
+
+v${VERSION}
+${AUTHOR}
+${URL}
+
+_EOF_
+}
+
+
+CONFIGFILE=""
+ISTART=0
+ISTOP=999
+
+while getopts :c:dhs:S: opt; do
 	case ${opt} in
 	c)
 		CONFIGFILE="${OPTARG}"
@@ -422,6 +437,12 @@ while getopts :c:dh opt; do
 	h)
 		usage
                 exit ${EC_USAGE}
+		;;
+	s)
+		ISTART="${OPTARG}"
+		;;
+	S)
+		ISTOP="${OPTARG}"
 		;;
 	\?)
 		log "Invalid option -${OPTARG}"
@@ -449,14 +470,58 @@ if [ -n "${CONFIGFILE}" ]; then
     fi
 fi
 
-mount_image "${IMGFILE}" "${MNT_DIR}"
-backup_kernel
-backup_world "${BACK_DIR}/world.tar.gz"
-install_system
-add_users
-upgrade_system
-cleanup
-umount_image "${MNT_DIR}"
-postupgrade
+istep=0
+echo "[${istep}] Mounting image ${IMGFILE} to ${MNT_DIR} ..."
+[ ${istep} -ge ${ISTART} -a ${istep} -le ${ISTOP} ] &&
+    mount_image "${IMGFILE}" "${MNT_DIR}" ||
+    echo "(skipped)"
+
+istep=$((${istep} + 1))
+echo "[${istep}] Backing up current kernel ..."
+[ ${istep} -ge ${ISTART} -a ${istep} -le ${ISTOP} ] &&
+    backup_kernel ||
+    echo "(skipped)"
+
+istep=$((${istep} + 1))
+echo "[${istep}] Backing up current world ..."
+[ ${istep} -ge ${ISTART} -a ${istep} -le ${ISTOP} ] &&
+    backup_world "${BACK_DIR}/world.tar.gz" ||
+    echo "(skipped)"
+
+istep=$((${istep} + 1))
+echo "[${istep}] Installing new kernel and world ..."
+[ ${istep} -ge ${ISTART} -a ${istep} -le ${ISTOP} ] &&
+    install_system ||
+    echo "(skipped)"
+
+istep=$((${istep} + 1))
+echo "[${istep}] Adding new users and groups ..."
+[ ${istep} -ge ${ISTART} -a ${istep} -le ${ISTOP} ] &&
+    add_users ||
+    echo "(skipped)"
+
+istep=$((${istep} + 1))
+echo "[${istep}] Upgrade system files ..."
+[ ${istep} -ge ${ISTART} -a ${istep} -le ${ISTOP} ] &&
+    upgrade_system ||
+    echo "(skipped)"
+
+istep=$((${istep} + 1))
+echo "[${istep}] Clean up obsolete files ..."
+[ ${istep} -ge ${ISTART} -a ${istep} -le ${ISTOP} ] &&
+    cleanup ||
+    echo "(skipped)"
+
+istep=$((${istep} + 1))
+echo "[${istep}] Umounting image from ${MNT_DIR} ..."
+[ ${istep} -ge ${ISTART} -a ${istep} -le ${ISTOP} ] &&
+    umount_image "${MNT_DIR}" ||
+    echo "(skipped)"
+
+istep=$((${istep} + 1))
+echo "[${istep}] Misc operations after upgrade ..."
+[ ${istep} -ge ${ISTART} -a ${istep} -le ${ISTOP} ] &&
+    postupgrade ||
+    echo "(skipped)"
 
 exit 0
