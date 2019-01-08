@@ -16,18 +16,18 @@ DEBUG=${DEBUG:-""}
 
 VERSION="0.1.5"
 NAME="dfly-update"
-TOOLDIR="${0%/*}"
-PREFIX="${PREFIX:-${TOOLDIR}}"
-CONFIGFILE="${PREFIX}/${NAME}.conf"
+AUTHOR="Aaron LI <aly@aaronly.me>"
+URL="https://github.com/liweitianux/dfly-update"
 
 #
 # Error Codes
 #
 
-EC_OS=10
-EC_TMPFILE=11
-EC_MD5=12
-EC_ARGS=13
+EC_USAGE=1
+EC_ARGS=2
+EC_CONFIG=11
+EC_TMPFILE=12
+EC_MD5=13
 EC_FETCH=14
 EC_MOUNT=15
 EC_UMOUNT=16
@@ -392,119 +392,71 @@ _EOF_
 }
 
 
-#
-# Sub-command functions
-#
-
-cmd_usage() {
+usage() {
     cat <<_EOF_
-dfly-update - DragonFly BSD update tool using binary release/snapshots
+Upgrade a DragonFly BSD system using a binary release/snapshot
 
-Usage: ${0##*/} <sub-command>
-
-Sub-commands:
-    help | --help | -h
-        Show this help.
-    mount <dfly.img>
-        Mount the given image file
-    backup
-        Back up the current kernel and world
-    upgrade
-        Install the new kernel, world, and config files
-    cleanup
-        Clean up obsolete files, umount and remove image file
-    fly <dfly.img>
-        Synthetic command to upgrade the system!
+Usage: ${0##*/} [-h] [-c <config-file>] [-d] <dfly.img>
 
 v${VERSION}
-Aaron LI <aly@aaronly.me>
-https://github.com/liweitianux/dfly-update
+${AUTHOR}
+${URL}
 _EOF_
 }
 
-# Mount the given image file
-cmd_mount() {
-    [ $# -eq 1 ] ||
-        error ${EC_ARGS} "cmd_mount: invalid arguments: $@"
-
-    local file="$1"
-    [ -f "${file}" ] ||
-        error ${EC_NOFILE} "cmd_mount: file not exists: ${file}"
-    mount_image "${file}" "${MNT_DIR}"
-}
-
-# Back up the current kernel and world
-cmd_backup() {
-    [ $# -eq 0 ] ||
-        error ${EC_ARGS} "cmd_backup: invalid arguments: $@"
-
-    backup_kernel
-    backfile="${BACK_DIR}/world.tar.gz"
-    backup_world "${backfile}"
-}
-
-# Install the new kernel, world, and config files.
-cmd_upgrade() {
-    [ $# -eq 0 ] ||
-        error ${EC_ARGS} "cmd_upgrade: invalid arguments: $@"
-
-    install_system
-    add_users
-    upgrade_system
-}
-
-# Clean up obsolete files, umount and remove image
-cmd_cleanup() {
-    [ $# -eq 0 ] ||
-        error ${EC_ARGS} "cmd_cleanup: invalid arguments: $@"
-
-    cleanup
-    umount_image ${MNT_DIR}
-    postupgrade
-}
-
-# Integrate all the upgrading steps -> fly :-)
-cmd_fly() {
-    [ $# -eq 1 ] ||
-        error ${EC_ARGS} "cmd_fly: invalid arguments: $@"
-
-    cmd_mount "$1"
-    cmd_backup
-    cmd_upgrade
-    cmd_cleanup
-}
 
 #
 # Main
 #
 
-# Load configurations
-[ -r "${CONFIGFILE}" ] && . ${CONFIGFILE}
+CONFIGFILE=""
 
-case $1 in
-    mount)
-        shift
-        cmd_mount "$@"
-        ;;
-    backup)
-        shift
-        cmd_backup
-        ;;
-    upgrade)
-        shift
-        cmd_upgrade
-        ;;
-    cleanup)
-        shift
-        cmd_cleanup
-        ;;
-    fly)
-        shift
-        cmd_fly "$@"
-        ;;
-    help|--help|-h|*)
-        cmd_usage
-        ;;
-esac
+while getopts :c:dh opt; do
+	case ${opt} in
+	c)
+		CONFIGFILE="${OPTARG}"
+		;;
+	d)
+		DEBUG=yes
+		;;
+	h)
+		usage
+                exit ${EC_USAGE}
+		;;
+	\?)
+		log "Invalid option -${OPTARG}"
+		usage
+                exit ${EC_ARGS}
+		;;
+	:)
+		log "Option -${OPTARG} requires an argument"
+		usage
+                exit ${EC_ARGS}
+		;;
+	esac
+done
+
+shift $((OPTIND - 1))
+[ $# -ne 1 ] && { usage; exit ${EC_ARGS}; }
+IMGFILE="$1"
+[ -r "${IMGFILE}" ] || error ${EC_NOFILE} "file not exists: ${IMGFILE}"
+
+if [ -n "${CONFIGFILE}" ]; then
+    if [ -r "${CONFIGFILE}" ]; then
+        . ${CONFIGFILE}
+    else
+        error ${EC_CONFIG} "cannot read config file: ${CONFIGFILE}"
+    fi
+fi
+
+mount_image "${IMGFILE}" "${MNT_DIR}"
+backup_kernel
+backup_world "${BACK_DIR}/world.tar.gz"
+install_system
+add_users
+upgrade_system
+cleanup
+umount_image "${MNT_DIR}"
+postupgrade
 
 exit 0
