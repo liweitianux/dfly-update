@@ -53,26 +53,27 @@ MNT_DIR="/mnt/${NAME}"
 BACK_DIR="/var/backups/${NAME}"
 
 # List of files/directories to be installed
+# NOTE: Do NOT include 'etc' below!
 INSTALL_LIST='
-    COPYRIGHT
-    bin
-    boot
-    compat
-    lib
-    libexec
-    rescue
-    sbin
-    usr/Makefile
-    usr/bin
-    usr/games
-    usr/include
-    usr/lib
-    usr/libdata
-    usr/libexec
-    usr/sbin
-    usr/share
-    var/msgs
-    var/yp
+    /COPYRIGHT
+    /bin
+    /boot
+    /compat
+    /lib
+    /libexec
+    /rescue
+    /sbin
+    /usr/Makefile
+    /usr/bin
+    /usr/games
+    /usr/include
+    /usr/lib
+    /usr/libdata
+    /usr/libexec
+    /usr/sbin
+    /usr/share
+    /var/msgs
+    /var/yp
 '
 
 # Ignored files to be kept from overriding by the upgrade.
@@ -226,6 +227,10 @@ install_system() {
 
     echo "  => Installing kernel and world ..."
     for item in ${INSTALL_LIST}; do
+        [ "${item%/}" = "/etc" ] && {
+            warn "'/etc' is in 'INSTALL_LIST'; force ignored"
+            continue
+        }
         echo -n "   * Installing: ${item} ... "
         # NOTE: 'cpdup -X' doesn't normalize multiple '/' to be one.
         ${CPDUP} -o -X ${cpignore} ${MNT_DIR%/}/${item#/} /${item} ||
