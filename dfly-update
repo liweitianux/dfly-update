@@ -240,14 +240,16 @@ install_system() {
     echo "  => Collecting files to be ignored ..."
     cpignore=$(mktemp -t ${NAME}) || exit ${EC_TMPFILE}
     for file in ${FILES_IGNORE}; do
-        echo "${MNT_DIR}/${file}" >> ${cpignore}
+        # NOTE: 'cpdup -X' doesn't normalize multiple '/' to be one.
+        echo "${MNT_DIR%/}/${file#/}" >> ${cpignore}
         echo "   * ${file}  <ignored>"
     done
 
     echo "  => Installing kernel and world ..."
     for item in ${INSTALL_LIST}; do
         echo -n "   * Installing: ${item} ... "
-        ${CPDUP} -o -u -X ${cpignore} ${MNT_DIR}/${item} /${item} ||
+        # NOTE: 'cpdup -X' doesn't normalize multiple '/' to be one.
+        ${CPDUP} -o -X ${cpignore} ${MNT_DIR%/}/${item#/} /${item} ||
             exit ${EC_CPDUP}
         echo "ok"
     done
@@ -266,7 +268,7 @@ upgrade_system() {
     [ -d "${CACHE_DIR}" ] || mkdir "${CACHE_DIR}"
     echo "Upgrading system ..."
     echo "  => Coping new /etc to: ${etcdir}"
-    ${CPDUP} -o -u ${MNT_DIR}/etc.hdd ${etcdir} || exit ${EC_CPDUP}
+    ${CPDUP} -o ${MNT_DIR}/etc.hdd ${etcdir} || exit ${EC_CPDUP}
 
     echo "  => Removing ignored files ..."
     for file_etc in ${FILES_IGNORE}; do
@@ -294,7 +296,7 @@ upgrade_system() {
     done
 
     echo "  => Installing new configurations ..."
-    ${CPDUP} -o -u ${etcdir} /etc || exit ${EC_CPDUP}
+    ${CPDUP} -o ${etcdir} /etc || exit ${EC_CPDUP}
     echo "  => DONE!"
     rm -rf "${etcdir}"
     echo "+---------+"
