@@ -387,6 +387,7 @@ postupgrade() {
 +---------------------------------------------------------+
 After manually merge the above files, reboot into the new
 system, and upgrade the packages with:
+    # pkg update
     # pkg upgrade [-f]
 +=========================================================+
 _EOF_
