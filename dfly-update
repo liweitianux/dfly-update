@@ -134,23 +134,18 @@ mount_image() {
     mount -r /dev/${vn}s2a ${mntpnt} || exit ${EC_MOUNT}
 }
 
-# Get the vn device name of the mounted image
-get_vn_devname() {
-    local mntpnt="$1"
-    local dev=$(mount | fgrep "${mntpnt}" | cut -d' ' -f 1 | cut -d'/' -f 3)
-    echo ${dev%s??}
-}
-
-# Umount the image
+# Umount the image and unconfigure the underlying VN device
 #
 # umount_image(mntpnt)
 #
 umount_image() {
     local mntpnt="$1"
-    local vn=$(get_vn_devname ${mntpnt})
+    local dev vn
+    dev=$(df | awk '$NF == "'${mntpnt}'" { print $1 }')
+    vn=${dev#/dev/}
     umount ${mntpnt} || exit ${EC_UMOUNT}
-    echo "Disable and unconfigure VN device ${vn} ..."
-    vnconfig -u ${vn} || exit ${EC_VN}
+    echo "Unconfigure ${vn} ..."
+    vnconfig -u "${vn%s??}" || exit ${EC_VN}
 }
 
 # Backup the old kernel
