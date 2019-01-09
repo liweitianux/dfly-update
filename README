@@ -7,21 +7,17 @@ MIT License
 
 https://github.com/liweitianux/dfly-update
 
-A simple tool to update a DragonFly BSD system using binary releases or
-snapshot builds.
-
-Tests, issue reports, and pull requests welcome :)
+A simple tool to update a DragonFly BSD system using a binary release or
+snapshot image file.
 
 Introduction
 ------------
-The officially supported method to update a DragonFly system is building
-and installing from sources.  However, it's time-consuming, hard or even
-impossible to build sources on a small or low-end VPS, and it's also not
-easy to transfer the built "/usr/obj" (which is rather big) to a remote
-VPS for an update.
-
-Therefore, a simple tool to update a DragonFly BSD system directly from
-the officially built release or snapshot images is very useful and
+The officially supported method to update a DragonFly BSD system is
+building and installing from the source.  However, on a low-end machine
+(e.g., a small VPS), it's time-consuming and hard to build the source.  On
+the other hand, it's not easy to transfer the built "/usr/obj" (quite big)
+to a remote VPS for an update.  Therefore, a simple tool to update a the
+system directly using a binary release or snapshot image is very useful and
 necessary.
 
 This tool refers to the installation procedures and the official source
