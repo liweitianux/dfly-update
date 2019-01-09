@@ -45,6 +45,12 @@ After this, you still need to merge the listed config files with suffix
 
 Versions
 --------
+* 0.2.0 (2019-01-09)
+  - New command line syntax
+  - Remove the "status" and "download" commands to be a lot simpler
+  - Use "cpdup -X" to ignore the files that should not be overwritten
+  - Create new users/groups according to the new master.passwd/group
+  - Multiple other small improvements and cleanups
 * 0.1.5 (2018-12-28)
   - Rebuild multiple databases after upgrade
   - Various minor cleanups
