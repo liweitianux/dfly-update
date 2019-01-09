@@ -121,14 +121,19 @@ error() {
     exit ${ec}
 }
 
-# Mount the downloaded image (IMG file)
+# Mount the specified system image file
 #
 # mount_image(imgfile, mntpnt)
 #
 mount_image() {
     local imgfile="$1"
     local mntpnt="$2"
-    local vn
+    local dev vn
+
+    dev=$(df | awk '$NF == "'${mntpnt}'" { print $1 }')
+    [ -z "${dev}" ] ||
+        error ${EC_MOUNT} "${dev} already mounted at ${mntpnt}"
+
     [ -d "${mntpnt}" ] || mkdir "${mntpnt}"
     vn=$(vnconfig -c vn ${imgfile}) || exit ${EC_VN}
     mount -r /dev/${vn}s2a ${mntpnt} || exit ${EC_MOUNT}
