@@ -121,6 +121,13 @@ error() {
     exit ${ec}
 }
 
+# Get the device mounted at the given directory
+get_mount_dev() {
+    local mntpnt="$1"
+    local dev=$(df | awk '$NF == "'${mntpnt}'" { print $1 }')
+    echo "${dev}"
+}
+
 # Mount the specified system image file
 #
 # mount_image(imgfile, mntpnt)
@@ -130,7 +137,7 @@ mount_image() {
     local mntpnt="$2"
     local dev vn
 
-    dev=$(df | awk '$NF == "'${mntpnt}'" { print $1 }')
+    dev=$(get_mount_dev ${mntpnt})
     [ -z "${dev}" ] ||
         error ${EC_MOUNT} "${dev} already mounted at ${mntpnt}"
 
@@ -146,7 +153,7 @@ mount_image() {
 umount_image() {
     local mntpnt="$1"
     local dev vn
-    dev=$(df | awk '$NF == "'${mntpnt}'" { print $1 }')
+    dev=$(get_mount_dev ${mntpnt})
     vn=${dev#/dev/}
     umount ${mntpnt} || exit ${EC_UMOUNT}
     echo "Unconfigure ${vn} ..."
