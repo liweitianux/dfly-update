@@ -438,53 +438,49 @@ _EOF_
 }
 
 
-CONFIGFILE=""
 ISTART=0
-ISTOP=999
+ISTOP=99
 
 while getopts :c:dhs:S: opt; do
-	case ${opt} in
-	c)
-		CONFIGFILE="${OPTARG}"
-		;;
-	d)
-		DEBUG=yes
-		;;
-	h)
-		usage
-                exit ${EC_USAGE}
-		;;
-	s)
-		ISTART="${OPTARG}"
-		;;
-	S)
-		ISTOP="${OPTARG}"
-		;;
-	\?)
-		log "Invalid option -${OPTARG}"
-		usage
-                exit ${EC_ARGS}
-		;;
-	:)
-		log "Option -${OPTARG} requires an argument"
-		usage
-                exit ${EC_ARGS}
-		;;
-	esac
+    case ${opt} in
+    c)
+        CONFIGFILE="${OPTARG}"
+        if [ -r "${CONFIGFILE}" ]; then
+            . ${CONFIGFILE}
+        else
+            error ${EC_CONFIG} "cannot read config file: ${CONFIGFILE}"
+        fi
+        ;;
+    d)
+        DEBUG=yes
+        ;;
+    h)
+        usage
+        exit ${EC_USAGE}
+        ;;
+    s)
+        ISTART="${OPTARG}"
+        ;;
+    S)
+        ISTOP="${OPTARG}"
+        ;;
+    \?)
+        log "Invalid option -${OPTARG}"
+        usage
+        exit ${EC_ARGS}
+        ;;
+    :)
+        log "Option -${OPTARG} requires an argument"
+        usage
+        exit ${EC_ARGS}
+        ;;
+    esac
 done
 
 shift $((OPTIND - 1))
 [ $# -ne 1 ] && { usage; exit ${EC_ARGS}; }
 IMGFILE="$1"
 [ -r "${IMGFILE}" ] || error ${EC_NOFILE} "file not exists: ${IMGFILE}"
-
-if [ -n "${CONFIGFILE}" ]; then
-    if [ -r "${CONFIGFILE}" ]; then
-        . ${CONFIGFILE}
-    else
-        error ${EC_CONFIG} "cannot read config file: ${CONFIGFILE}"
-    fi
-fi
 
 istep=0
 echo "[${istep}] Mounting image ${IMGFILE} to ${MNT_DIR} ..."
