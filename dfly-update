@@ -409,8 +409,9 @@ usage() {
     cat <<_EOF_
 Upgrade a DragonFly BSD system using a binary release/snapshot
 
-Usage: ${0##*/} [-h] [-c <config-file>] [-d]
-    [-s <start-step>] [-S <stop-step] <dfly.img>
+Usage:
+${0##*/} [-h] [-c <config-file>] [-d]
+    [-s <start-step>] [-S <stop-step] {dfly.img}
 
 Options:
     -h : show this help
@@ -429,6 +430,11 @@ Steps:
 6. clean up obsolete files
 7. umount the system image
 8. misc operations after upgrade
+
+Note:
+The {dfly.img} is required when <start-step> is 0 (the default),
+otherwise it is assumed that the image file is already mounted
+at \${MNT_DIR} (default to be '${MNT_DIR}').
 
 v${VERSION}
 ${AUTHOR}
@@ -478,14 +484,20 @@ while getopts :c:dhs:S: opt; do
 done
 
 shift $((OPTIND - 1))
-[ $# -ne 1 ] && { usage; exit ${EC_ARGS}; }
-IMGFILE="$1"
-[ -r "${IMGFILE}" ] || error ${EC_NOFILE} "file not exists: ${IMGFILE}"
+
+if [ ${ISTART} -eq 0 ]; then
+    [ $# -eq 1 ] || error ${EC_ARGS} "no image file provided"
+    IMG="$1"
+    [ -f "${IMG}" ] || error ${EC_NOFILE} "image file not exists: ${IMG}"
+else
+    DEV=$(get_mount_dev ${MNT_DIR})
+    [ -n "${DEV}" ] || error ${EC_MOUNT} "nothing mounted at: ${MNT_DIR}"
+fi
 
 istep=0
-echo "[${istep}] Mounting image ${IMGFILE} to ${MNT_DIR} ..."
+echo "[${istep}] Mounting image to ${MNT_DIR} ..."
 [ ${istep} -ge ${ISTART} -a ${istep} -le ${ISTOP} ] &&
-    mount_image "${IMGFILE}" "${MNT_DIR}" ||
+    mount_image "${IMG}" "${MNT_DIR}" ||
     echo "(skipped)"
 
 istep=$((${istep} + 1))
