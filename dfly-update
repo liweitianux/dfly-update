@@ -232,7 +232,7 @@ install_system() {
         file=BSD.${item%:*}.dist
         path=${item#*:}
         echo "   * mtree: ${path} ..."
-        mtree -deUq -f ${MNT_DIR}/etc.hdd/mtree/${file} -p ${path} ||
+        mtree -deiqU -f ${MNT_DIR}/etc.hdd/mtree/${file} -p ${path} ||
             exit ${EC_MTREE}
     done
 
