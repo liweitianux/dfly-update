@@ -63,9 +63,3 @@ Versions
 * 0.1.2 (2018-03-11)
   - First usable version for broader testing
 
-TODO
-----
-* Merge new users/groups
-* Interactively merge updated /etc files
-  (borrow OpenBSD's sysmerge(8) or improve/simplify mergemaster(8))
-* rcs(1) controlled /etc upgrade

@@ -1,0 +1,16 @@
+* PATH: use tools from the new system
+* Merge new users/groups
+* Interactively merge updated /etc files
+  (borrow OpenBSD's sysmerge(8) or improve/simplify mergemaster(8))
+* rcs(1) controlled /etc upgrade
+
+[rcs-etc]
+* rcs + vendor branch: to manage /etc and support 3-way merge to update
+  the files
+* etc-upgrade can be interrupted/paused and then resumed
+* generate a detailed report for the upgrade, something like a git commit
+* display the report and let user to make sure the upgrade is correct
+* send the report as an email to root
+
+* trap signal; clean up on error
+* lock/status file to be safe ...
