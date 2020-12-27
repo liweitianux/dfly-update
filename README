@@ -2,11 +2,6 @@
 dfly-update
 ===========
 
-Copyright (c) 2017-2019 Aaron LI <aly@aaronly.me>
-MIT License
-
-https://github.com/liweitianux/dfly-update
-
 A simple tool to update a DragonFly BSD system using a binary release or
 snapshot image file.
 
@@ -30,8 +25,8 @@ the following steps:
 4. create new users and groups;
 5. identify the new/changed "/etc" files, rename the conflicting ones
    with suffix ".__new__" and then copy over;
-6. get obsolete files from "Makefile_upgrade.inc" and remove them;
-7. umount, show the "*.__new__" files need manual merge.
+6. remove obsolete files according to "Makefile_upgrade.inc";
+7. umount, show the "*.__new__" files that need manual merge.
 
 Usage
 -----
@@ -63,3 +58,7 @@ Versions
 * 0.1.2 (2018-03-11)
   - First usable version for broader testing
 
+License
+-------
+MIT License
+Copyright (c) 2017-2020 Aaron LI <aly@aaronly.me>
