@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2017-2019 Aaron LI <aly@aaronly.me>
+# Copyright (c) 2017-2020 Aaron LI <aly@aaronly.me>
 # MIT License
 #
 # Tool to update a DragonFly BSD system using binary releases or
@@ -265,36 +265,40 @@ add_users() {
 
     echo "  => Adding new users ..."
     _gids=""
-    grep -Ev '^(#.*|\s*)$' ${fpasswd} |
-            while IFS=':' read -r _name _pw _uid _gid _class \
-                                  _change _expire _gecos _home _shell; do
+    while IFS=':' read -r _name _pw _uid _gid _class \
+                          _change _expire _gecos _home _shell; do
+        case ${_name} in
+        '' | \#*) continue ;;
+        esac
         pw usershow ${_name} -q >/dev/null && continue
 
         # NOTE: There is circular dependence: 'groupadd' requires the members
         #       already exist, while 'useradd' requires the group exists.
         #       So first assign new users to the 'nogroup' group, and make
         #       adjustments after group creation.
-        echo "   * ${_name}, ${_uid}, ${_gid}, ${_gecos}, ${_home}, ${_shell}"
+        echo "   * ${_name}: ${_uid}, ${_gid}, ${_gecos}, ${_home}, ${_shell}"
         pw useradd ${_name} \
             -u ${_uid} -g nogroup -d ${_home} -s ${_shell} \
             -L "${_class}" -c "${_gecos}" || exit ${EC_PW}
         _gids="${_gids} ${_name}:${_gid}"
-    done
+    done < ${fpasswd}
 
     echo "  => Adding new groups ..."
-    grep -Ev '^(#.*|\s*)$' ${fgroup} |
-            while IFS=':' read -r _name _pw _gid _members; do
+    while IFS=':' read -r _name _pw _gid _members; do
+        case ${_name} in
+        '' | \#*) continue ;;
+        esac
         pw groupshow ${_name} -q >/dev/null && continue
 
-        echo "   * ${_name}, ${_gid}, ${_members}"
+        echo "   * ${_name}: ${_gid}, ${_members}"
         pw groupadd ${_name} -g ${_gid} -M "${_members}" || exit ${EC_PW}
-    done
+    done < ${fgroup}
 
     echo "  => Adjusting the group of new users ..."
     for item in ${_gids}; do
         _name=${item%:*}
         _gid=${item#*:}
-        echo "   * ${_name}, ${_gid}"
+        echo "   * ${_name}: ${_gid}"
         pw usermod ${_name} -g ${_gid} || exit ${EC_PW}
     done
 }
